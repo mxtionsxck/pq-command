@@ -1,0 +1,39 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "validate-design-system",
+			"type": "shell",
+			"command": "cmd.exe",
+			"args": [
+				"/d",
+				"/c",
+				"\"\"C:\\Program Files\\nodejs\\npm.cmd\" run typecheck && \"\"C:\\Program Files\\nodejs\\npm.cmd\" run lint && \"\"C:\\Program Files\\nodejs\\npm.cmd\" test && \"\"C:\\Program Files\\nodejs\\npm.cmd\" run build\""
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "phase-typecheck",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"typecheck"
+			],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "test"
+		},
+		{
+			"label": "git-init-check",
+			"type": "shell",
+			"command": "\"C:\\Program Files\\Git\\cmd\\git.exe\" -C . status --short",
+			"isBackground": false
+		}
+	]
+}

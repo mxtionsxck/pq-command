@@ -1,0 +1,61 @@
+databases:
+  - name: pq-command-db
+    databaseName: pqcommand
+    user: pqcommand
+    plan: starter
+
+services:
+  - type: web
+    name: pq-command-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pq-command-db
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: AUTH_LOCAL_ADMIN_USERNAME
+        value: PQADMIN
+      - key: AUTH_LOCAL_ADMIN_PASSWORD
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+
+  - type: worker
+    name: pq-command-worker
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: npm ci
+    startCommand: npm run bot
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pq-command-db
+          property: connectionString
+      - key: AUTH_SECRET
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: AUTH_SECRET
+      - key: AUTH_LOCAL_ADMIN_USERNAME
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: AUTH_LOCAL_ADMIN_USERNAME
+      - key: AUTH_LOCAL_ADMIN_PASSWORD
+        sync: false

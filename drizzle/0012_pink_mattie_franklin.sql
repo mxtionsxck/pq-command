@@ -1,0 +1,2 @@
+CREATE TYPE "public"."autonomy_level" AS ENUM('LEVEL_0_DRAFT_ONLY', 'LEVEL_1_HUMAN_APPROVAL', 'LEVEL_2_CONTROLLED_AUTO_FOLLOW_UP', 'LEVEL_3_LIMITED_AUTONOMOUS_CAMPAIGNS');--> statement-breakpoint
+ALTER TABLE "outreach_campaigns" ADD COLUMN "autonomy_level" "autonomy_level" DEFAULT 'LEVEL_1_HUMAN_APPROVAL' NOT NULL;

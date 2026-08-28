@@ -1,0 +1,43 @@
+{
+  "name": "pq-command",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0",
+    "bot": "tsx src/jobs/continuous-runner.ts",
+    "local:always-on": "powershell -ExecutionPolicy Bypass -File scripts/start-pq-command-stack.ps1",
+    "local:register-startup": "powershell -ExecutionPolicy Bypass -File scripts/register-pq-command-startup.ps1",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "next": "16.3.3",
+    "next-auth": "^5.0.0-beta.30",
+    "postgres": "^3.4.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "ulid": "^3.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.6",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.3",
+    "localtunnel": "^2.0.2",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4",
+    "tsx": "^4.20.6",
+    "typescript": "^5"
+  }
+}
