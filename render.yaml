@@ -2,14 +2,14 @@ databases:
   - name: pq-command-db
     databaseName: pqcommand
     user: pqcommand
-    plan: starter
+    plan: 0.1c-256mb
 
 services:
   - type: web
     name: pq-command-web
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: 0.5c-512mb
     autoDeploy: true
     healthCheckPath: /api/health
     envVars:
@@ -33,7 +33,7 @@ services:
   - type: worker
     name: pq-command-worker
     runtime: node
-    plan: starter
+    plan: 0.5c-512mb
     rootDir: .
     buildCommand: npm ci
     startCommand: npm run bot
