@@ -92,3 +92,21 @@ test("agents cannot manage audit history", () => {
     AuthorizationError,
   );
 });
+
+test("audit service does not crash when database is absent", async () => {
+  const auditService = createAuditService();
+
+  await assert.doesNotReject(() =>
+    auditService.recordEvent({
+      actor: {
+        type: "user",
+        id: "usr_admin",
+        userId: "usr_admin",
+      },
+      action: "page.viewed",
+      entityType: "page",
+      entityId: "/internal/hotel-deals",
+      metadata: { ok: true },
+    }),
+  );
+});

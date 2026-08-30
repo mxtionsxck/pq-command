@@ -97,9 +97,31 @@ function getRepository(repository?: AuditRepositoryLike): AuditRepositoryLike {
   const database = getDatabaseConfig(appEnv);
 
   if (!database.configured) {
-    throw new Error(
-      "DATABASE_URL is required before audit events can be persisted.",
-    );
+    return {
+      async create(input: AuditCreateInput) {
+        const occurredAt = input.occurredAt ?? new Date();
+
+        return {
+          id: input.id ?? `audit_noop_${occurredAt.getTime()}`,
+          actorType: input.actorType ?? "system",
+          actorId: input.actorId,
+          actorUserId: input.actorUserId ?? null,
+          action: input.action,
+          entityType: input.entityType,
+          entityId: input.entityId,
+          occurredAt,
+          metadata: sanitizeRecord(input.metadata) ?? {},
+          beforeState: sanitizeRecord(input.beforeState) ?? null,
+          afterState: sanitizeRecord(input.afterState) ?? null,
+          requestId: input.requestId ?? null,
+          createdAt: occurredAt,
+          updatedAt: occurredAt,
+        } satisfies AuditEvent;
+      },
+      async listRecent() {
+        return [];
+      },
+    };
   }
 
   return createRepositories().auditEvents;

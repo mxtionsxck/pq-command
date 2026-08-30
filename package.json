@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
+    "prestart": "npm run db:migrate",
     "start": "next start -H 0.0.0.0",
+    "prebot": "npm run db:migrate",
     "bot": "tsx src/jobs/continuous-runner.ts",
     "local:always-on": "powershell -ExecutionPolicy Bypass -File scripts/start-pq-command-stack.ps1",
     "local:register-startup": "powershell -ExecutionPolicy Bypass -File scripts/register-pq-command-startup.ps1",
@@ -24,6 +26,7 @@
     "postgres": "^3.4.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "tsx": "^4.20.6",
     "ulid": "^3.0.1"
   },
   "devDependencies": {
@@ -37,7 +40,6 @@
     "localtunnel": "^2.0.2",
     "prettier": "^3.6.2",
     "tailwindcss": "^4",
-    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

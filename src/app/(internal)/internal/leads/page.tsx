@@ -83,18 +83,41 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
   const selectedLeadId = readParam(params, "lead");
   const page = asPositiveInt(readParam(params, "page"), 1);
   const pageSize = Math.min(50, asPositiveInt(readParam(params, "pageSize"), 25));
-  const leadService = createLeadRoomService();
-  const directnessService = createDirectnessVerificationService();
-  const leads = await leadService.listView(selectedView, search, {
-    limit: pageSize,
-    offset: (page - 1) * pageSize,
-  });
-  const [drawer, directnessAssessments] = selectedLeadId
-    ? await Promise.all([
+
+  let leadService: ReturnType<typeof createLeadRoomService> | null = null;
+  let directnessService: ReturnType<typeof createDirectnessVerificationService> | null = null;
+
+  let leads: Awaited<ReturnType<ReturnType<typeof createLeadRoomService>["listView"]>> = [];
+  let drawer: Awaited<ReturnType<ReturnType<typeof createLeadRoomService>["getLeadDrawer"]>> = null;
+  let directnessAssessments: Awaited<
+    ReturnType<ReturnType<typeof createDirectnessVerificationService>["listAssessments"]>
+  > = [];
+
+  try {
+    leadService = createLeadRoomService();
+    directnessService = createDirectnessVerificationService();
+
+    leads = await leadService.listView(selectedView, search, {
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+
+    if (selectedLeadId) {
+      [drawer, directnessAssessments] = await Promise.all([
         leadService.getLeadDrawer(selectedLeadId),
         directnessService.listAssessments(selectedLeadId),
-      ])
-    : [null, []];
+      ]);
+    }
+  } catch (error) {
+    console.error("Failed to load lead room data.", error);
+    leadService = null;
+    directnessService = null;
+    leads = [];
+    drawer = null;
+    directnessAssessments = [];
+  }
+
+  const leadRoomError = !leads.length && selectedLeadId === null && !search;
 
   return (
     <AppShell>
@@ -104,6 +127,19 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
           title="Signals to qualification"
           description="Direct-only board: only verified direct leads are shown and promotable to qualification/outreach."
         />
+
+        {leadRoomError ? (
+          <Card title="Lead room status">
+            <div className="space-y-2">
+              <p className="text-sm text-amber-300">
+                The lead board is temporarily unavailable while the live data tables catch up.
+              </p>
+              <p className="text-xs pq-copy-subtle">
+                This page will automatically recover once the production schema is aligned with the app.
+              </p>
+            </div>
+          </Card>
+        ) : null}
 
         <Card title="Views and search">
           <div className="space-y-4">

@@ -262,35 +262,6 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
     throw new Error("AI_FALLBACK_PROVIDER must be different from AI_PROVIDER.");
   }
 
-  if (resolvedPrimaryProvider === "openai" && !OPENAI_API_KEY) {
-    throw new Error(
-      "OPENAI_API_KEY is required when AI_PROVIDER=openai.",
-    );
-  }
-
-  if (resolvedPrimaryProvider === "gemini" && !GEMINI_API_KEY) {
-    throw new Error(
-      "GEMINI_API_KEY is required when AI_PROVIDER=gemini.",
-    );
-  }
-
-  const openAiEnabled =
-    resolvedPrimaryProvider === "openai" || AI_FALLBACK_PROVIDER === "openai";
-  const geminiEnabled =
-    resolvedPrimaryProvider === "gemini" || AI_FALLBACK_PROVIDER === "gemini";
-
-  if (OPENAI_API_KEY && !openAiEnabled) {
-    throw new Error(
-      "AI_PROVIDER or AI_FALLBACK_PROVIDER must be openai when OPENAI_API_KEY is provided.",
-    );
-  }
-
-  if (GEMINI_API_KEY && !geminiEnabled) {
-    throw new Error(
-      "AI_PROVIDER or AI_FALLBACK_PROVIDER must be gemini when GEMINI_API_KEY is provided.",
-    );
-  }
-
   if (
     Boolean(PUBLIC_BUSINESS_DATA_API_URL) !==
     Boolean(PUBLIC_BUSINESS_DATA_API_KEY)

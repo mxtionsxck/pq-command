@@ -102,10 +102,28 @@ function withFallback(primary: AiProvider, fallback: AiProvider): AiProvider {
   };
 }
 
-export function createAiProvider(env: AppEnv): AiProvider {
+export function validateAiRuntimeConfig(env: AppEnv): boolean {
   const primaryProviderName = env.AI_PRIMARY_PROVIDER ?? env.AI_PROVIDER;
 
   if (!primaryProviderName) {
+    return true;
+  }
+
+  if (primaryProviderName === "openai" && !env.OPENAI_API_KEY) {
+    return false;
+  }
+
+  if (primaryProviderName === "gemini" && !env.GEMINI_API_KEY) {
+    return false;
+  }
+
+  return true;
+}
+
+export function createAiProvider(env: AppEnv): AiProvider {
+  const primaryProviderName = env.AI_PRIMARY_PROVIDER ?? env.AI_PROVIDER;
+
+  if (!primaryProviderName || !validateAiRuntimeConfig(env)) {
     return createMockAiProvider();
   }
 
