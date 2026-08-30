@@ -20,7 +20,7 @@ export async function getNavSummary(): Promise<NavSummary> {
 
   const db = getDb();
 
-  const [inboxOpenRow, hotRepliesRow] = await Promise.all([
+  const [inboxOpenRows, hotRepliesRows] = await Promise.all([
     db
       .select({ count: count(conversations.id) })
       .from(conversations)
@@ -43,7 +43,7 @@ export async function getNavSummary(): Promise<NavSummary> {
   ]);
 
   return {
-    inboxOpen: inboxOpenRow?.count ?? 0,
-    hotReplies: hotRepliesRow?.count ?? 0,
+    inboxOpen: inboxOpenRows[0]?.count ?? 0,
+    hotReplies: hotRepliesRows[0]?.count ?? 0,
   };
 }

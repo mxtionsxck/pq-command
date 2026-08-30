@@ -23,7 +23,26 @@ export default async function CommandCentrePage() {
   }
 
   const service = createCommandCentreService();
-  const snapshot = await service.getSnapshot();
+  let snapshot:
+    | Awaited<ReturnType<ReturnType<typeof createCommandCentreService>["getSnapshot"]>>
+    | null = null;
+
+  try {
+    snapshot = await service.getSnapshot();
+  } catch (error) {
+    console.error("[command-centre] failed to load snapshot", error);
+  }
+
+  if (!snapshot) {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Command Centre temporarily unavailable"
+          description="Core data is still syncing or missing in the current environment. Use Lead Room or Inbox while this recovers."
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
