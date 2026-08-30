@@ -30,6 +30,19 @@ function resolveSignInErrorMessage(errorCode: string | undefined) {
   }
 }
 
+function resolveSafePostLoginRoute(callbackUrl: string | undefined) {
+  const sanitized = sanitizeCallbackUrl(callbackUrl);
+
+  if (
+    sanitized === "/internal/command-centre" ||
+    sanitized.startsWith("/internal/command-centre?")
+  ) {
+    return "/internal";
+  }
+
+  return sanitized;
+}
+
 async function signInAction(formData: FormData) {
   "use server";
 
@@ -41,7 +54,9 @@ async function signInAction(formData: FormData) {
     String(formData.get("callbackUrl") ?? "/internal"),
   );
 
-  await signIn("microsoft-entra-id", { redirectTo: callbackUrl });
+  await signIn("microsoft-entra-id", {
+    redirectTo: resolveSafePostLoginRoute(callbackUrl),
+  });
 }
 
 async function localAdminSignInAction(formData: FormData) {
@@ -61,7 +76,7 @@ async function localAdminSignInAction(formData: FormData) {
     await signIn("credentials", {
       username,
       password,
-      redirectTo: callbackUrl,
+      redirectTo: resolveSafePostLoginRoute(callbackUrl),
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -76,7 +91,7 @@ async function localAdminSignInAction(formData: FormData) {
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const session = await auth();
   const params = await searchParams;
-  const callbackUrl = sanitizeCallbackUrl(params.callbackUrl);
+  const callbackUrl = resolveSafePostLoginRoute(params.callbackUrl);
   const signInErrorMessage = resolveSignInErrorMessage(params.error);
   const isEntraConfigured = isAuthProviderConfigured(appEnv);
   const isLocalAdminConfigured = isLocalAdminAuthConfigured(appEnv);
