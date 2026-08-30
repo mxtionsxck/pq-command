@@ -166,20 +166,20 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
   );
   const SLACK_WEBHOOK_URL = readOptionalUrl(source, "SLACK_WEBHOOK_URL");
 
-  const authFields = [
-    AUTH_SECRET,
+  const microsoftAuthFields = [
     AUTH_MICROSOFT_ENTRA_ID_ID,
     AUTH_MICROSOFT_ENTRA_ID_SECRET,
     AUTH_MICROSOFT_ENTRA_ID_ISSUER,
   ];
-  const configuredAuthFieldCount = authFields.filter(Boolean).length;
+  const configuredMicrosoftAuthFieldCount =
+    microsoftAuthFields.filter(Boolean).length;
 
   if (
-    configuredAuthFieldCount > 0 &&
-    configuredAuthFieldCount < authFields.length
+    configuredMicrosoftAuthFieldCount > 0 &&
+    configuredMicrosoftAuthFieldCount < microsoftAuthFields.length
   ) {
     throw new Error(
-      "AUTH_SECRET, AUTH_MICROSOFT_ENTRA_ID_ID, AUTH_MICROSOFT_ENTRA_ID_SECRET, and AUTH_MICROSOFT_ENTRA_ID_ISSUER must be configured together.",
+      "AUTH_MICROSOFT_ENTRA_ID_ID, AUTH_MICROSOFT_ENTRA_ID_SECRET, and AUTH_MICROSOFT_ENTRA_ID_ISSUER must be configured together.",
     );
   }
 
