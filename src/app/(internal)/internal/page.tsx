@@ -173,7 +173,14 @@ export default async function InternalHomePage() {
           </Card>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <details className="rounded-[var(--pq-radius-md)] border border-[color:var(--pq-border)] bg-[rgba(255,255,255,0.02)] p-4">
+          <summary className="cursor-pointer list-none text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--pq-accent-strong)]">
+            More tools
+          </summary>
+          <p className="mt-2 text-xs pq-copy-subtle">
+            Open additional modules when needed. Daily work should start from the 4-step cards above.
+          </p>
+          <section className="mt-4 grid gap-4 md:grid-cols-2">
           <Card
             eyebrow="Inventory"
             footer={
@@ -480,7 +487,8 @@ export default async function InternalHomePage() {
               heatmap signals, and message-box visibility.
             </p>
           </Card>
-        </section>
+          </section>
+        </details>
       </div>
     </AppShell>
   );
