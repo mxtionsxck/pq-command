@@ -30,14 +30,12 @@ services:
       - key: PUBLIC_BASE_URL
         sync: false
       - key: AI_PROVIDER
-        sync: false
+        value: openai
       - key: AI_FALLBACK_PROVIDER
         sync: false
       - key: AI_MODEL
         sync: false
       - key: OPENAI_API_KEY
-        sync: false
-      - key: GEMINI_API_KEY
         sync: false
       - key: PUBLIC_BUSINESS_DATA_API_URL
         sync: false
@@ -95,11 +93,6 @@ services:
           type: web
           name: pq-command-web
           envVarKey: OPENAI_API_KEY
-      - key: GEMINI_API_KEY
-        fromService:
-          type: web
-          name: pq-command-web
-          envVarKey: GEMINI_API_KEY
       - key: PUBLIC_BUSINESS_DATA_API_URL
         fromService:
           type: web
