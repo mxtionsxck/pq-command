@@ -23,14 +23,81 @@ export default async function InternalHomePage() {
     <AppShell>
       <div className="space-y-8">
         <PageHeader
-          eyebrow="Authenticated area"
-          title="Internal access"
-          description="Server-side authentication and role-aware authorization are active for internal PQ COMMAND routes."
+          eyebrow="Monday Morning"
+          title="Team Operating Hub"
+          description="Start with the most important screens first: qualified leads, inbox replies, and command centre priorities."
         />
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <Card
+            eyebrow="Step 1"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/leads?view=qualified"
+              >
+                Open qualified leads
+              </Link>
+            }
+            title="Qualified leads"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              Review ready-to-contact opportunities first.
+            </p>
+          </Card>
+          <Card
+            eyebrow="Step 2"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/inbox"
+              >
+                Open inbox
+              </Link>
+            }
+            title="Replies and messages"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              Handle hot conversations and assign follow-ups.
+            </p>
+          </Card>
+          <Card
+            eyebrow="Step 3"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/command-centre"
+              >
+                Open command centre
+              </Link>
+            }
+            title="Daily priorities"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              Track shortages, queue depth, and top actions.
+            </p>
+          </Card>
+          <Card
+            eyebrow="Step 4"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/acquisition"
+              >
+                Open acquisition engine
+              </Link>
+            }
+            title="Lead generation"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              Check mission progress and outreach-ready pipeline.
+            </p>
+          </Card>
+        </section>
 
         <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
           <Card
-            eyebrow="Current user"
+            eyebrow="Your account"
             footer={
               <form action={signOutAction}>
                 <Button type="submit" variant="ghost">
@@ -38,7 +105,7 @@ export default async function InternalHomePage() {
                 </Button>
               </form>
             }
-            title={user.name ?? user.email}
+            title={user.name ?? "Team user"}
           >
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3">
@@ -51,38 +118,58 @@ export default async function InternalHomePage() {
                   <dd className="mt-1 text-white">{user.email}</dd>
                 </div>
                 <div>
-                  <dt className="pq-copy-subtle">Subject ID</dt>
+                  <dt className="pq-copy-subtle">User ID</dt>
                   <dd className="mt-1 break-all text-white">{user.id}</dd>
                 </div>
               </dl>
             </div>
           </Card>
 
-          <Card eyebrow="Permission snapshot" title="Server permission helpers">
+          <Card eyebrow="Quick links" title="Common team actions">
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <span className="pq-copy-muted">canManageSources</span>
-                <StatusPill
-                  tone={canManageSources(user) ? "success" : "neutral"}
-                >
-                  {String(canManageSources(user))}
-                </StatusPill>
+                <span className="pq-copy-muted">Lead room</span>
+                <Link className="text-[color:var(--pq-accent-strong)]" href="/internal/leads">
+                  Open
+                </Link>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="pq-copy-muted">canSendOutreach</span>
-                <StatusPill
-                  tone={canSendOutreach(user) ? "success" : "neutral"}
-                >
-                  {String(canSendOutreach(user))}
-                </StatusPill>
+                <span className="pq-copy-muted">Campaign builder</span>
+                <Link className="text-[color:var(--pq-accent-strong)]" href="/internal/outreach">
+                  Open
+                </Link>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="pq-copy-muted">canManageUsers</span>
-                <StatusPill tone={canManageUsers(user) ? "success" : "neutral"}>
-                  {String(canManageUsers(user))}
-                </StatusPill>
+                <span className="pq-copy-muted">Viewings</span>
+                <Link className="text-[color:var(--pq-accent-strong)]" href="/internal/viewings">
+                  Open
+                </Link>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="pq-copy-muted">Deal room</span>
+                <Link className="text-[color:var(--pq-accent-strong)]" href="/internal/deals">
+                  Open
+                </Link>
               </div>
             </div>
+          </Card>
+        </section>
+
+        <section className="grid gap-4 sm:grid-cols-3">
+          <Card eyebrow="Permission status" title="Source management">
+            <StatusPill tone={canManageSources(user) ? "success" : "neutral"}>
+              {canManageSources(user) ? "Enabled" : "Restricted"}
+            </StatusPill>
+          </Card>
+          <Card eyebrow="Permission status" title="Outreach sending">
+            <StatusPill tone={canSendOutreach(user) ? "success" : "neutral"}>
+              {canSendOutreach(user) ? "Enabled" : "Restricted"}
+            </StatusPill>
+          </Card>
+          <Card eyebrow="Permission status" title="User management">
+            <StatusPill tone={canManageUsers(user) ? "success" : "neutral"}>
+              {canManageUsers(user) ? "Enabled" : "Restricted"}
+            </StatusPill>
           </Card>
         </section>
 
