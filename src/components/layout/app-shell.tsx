@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -15,10 +15,60 @@ export function AppShell({ children }: AppShellProps) {
   const isInternalSurface =
     pathname.startsWith("/internal") || pathname.startsWith("/admin");
 
+  const [navSummary, setNavSummary] = useState<{
+    inboxOpen: number;
+    hotReplies: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isInternalSurface) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadSummary = async () => {
+      try {
+        const response = await fetch("/api/internal/nav-summary", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          inboxOpen?: number;
+          hotReplies?: number;
+        };
+
+        if (!cancelled) {
+          setNavSummary({
+            inboxOpen: payload.inboxOpen ?? 0,
+            hotReplies: payload.hotReplies ?? 0,
+          });
+        }
+      } catch {
+        // Keep navigation usable even if live counters temporarily fail.
+      }
+    };
+
+    void loadSummary();
+    const intervalId = setInterval(() => {
+      void loadSummary();
+    }, 60_000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, [isInternalSurface]);
+
   const primaryNav = [
     { href: "/internal/command-centre", label: "Command Centre" },
     { href: "/internal/leads?view=qualified", label: "Qualified Leads" },
     { href: "/internal/inbox", label: "Inbox" },
+    { href: "/internal/inbox?category=HOT", label: "Hot Replies" },
     { href: "/internal/acquisition", label: "Acquisition" },
     { href: "/internal/deals", label: "Deals" },
     { href: "/internal/viewings", label: "Viewings" },
@@ -34,6 +84,22 @@ export function AppShell({ children }: AppShellProps) {
   const isActive = (href: string) => {
     const [basePath] = href.split("?");
     return pathname === basePath || pathname.startsWith(`${basePath}/`);
+  };
+
+  const badgeFor = (href: string) => {
+    if (!navSummary) {
+      return null;
+    }
+
+    if (href === "/internal/inbox") {
+      return navSummary.inboxOpen;
+    }
+
+    if (href === "/internal/inbox?category=HOT") {
+      return navSummary.hotReplies;
+    }
+
+    return null;
   };
 
   const shellPadding = isInternalSurface ? "pb-24 md:pb-8" : "";
@@ -65,7 +131,12 @@ export function AppShell({ children }: AppShellProps) {
                         href={item.href}
                         key={item.href}
                       >
-                        {item.label}
+                        <span>{item.label}</span>
+                        {badgeFor(item.href) && badgeFor(item.href)! > 0 ? (
+                          <span className={`ml-auto inline-flex min-w-6 justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${isActive(item.href) ? "bg-black/80 text-[color:var(--pq-accent)]" : "bg-[color:#d64747] text-white"}`}>
+                            {badgeFor(item.href)}
+                          </span>
+                        ) : null}
                       </Link>
                     ))}
                   </nav>
@@ -105,7 +176,14 @@ export function AppShell({ children }: AppShellProps) {
                     href={item.href}
                     key={item.href}
                   >
-                    {item.label}
+                    <span className="relative inline-flex items-center justify-center">
+                      <span>{item.label}</span>
+                      {badgeFor(item.href) && badgeFor(item.href)! > 0 ? (
+                        <span className={`absolute -right-5 -top-2 inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${isActive(item.href) ? "bg-black/80 text-[color:var(--pq-accent)]" : "bg-[color:#d64747] text-white"}`}>
+                          {badgeFor(item.href)}
+                        </span>
+                      ) : null}
+                    </span>
                   </Link>
                 ))}
               </div>
