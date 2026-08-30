@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import type { CurrentUser, Permission } from "@/domain/auth/types";
 
-import { requirePermission } from "./rbac";
+import { hasPermission } from "./rbac";
 
 function mapSessionUser(session: Session | null): CurrentUser | null {
   if (!session?.user?.email || !session.user.role || !session.user.id) {
@@ -43,5 +43,13 @@ export async function requireCurrentUserPermission(
 ): Promise<CurrentUser> {
   const user = await getCurrentUser();
 
-  return requirePermission(user, permission);
+  if (!user) {
+    redirect("/auth/sign-in");
+  }
+
+  if (!hasPermission(user, permission)) {
+    redirect("/internal?forbidden=1");
+  }
+
+  return user;
 }
