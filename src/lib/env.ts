@@ -186,7 +186,9 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
   const OPENAI_CHEAP_MODEL = readOptional(source, "OPENAI_CHEAP_MODEL");
   const OPENAI_STANDARD_MODEL = readOptional(source, "OPENAI_STANDARD_MODEL");
   const OPENAI_REASONING_MODEL = readOptional(source, "OPENAI_REASONING_MODEL");
-  const OPENAI_API_KEY = readOptional(source, "OPENAI_API_KEY");
+  const OPENAI_API_KEY =
+    readOptional(source, "OPENAI_API_KEY") ??
+    readOptional(source, "OPEN_AI_KEY");
   const GEMINI_API_KEY = readOptional(source, "GEMINI_API_KEY");
   const NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET = readOptionalInt(
     source,

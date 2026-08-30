@@ -62,6 +62,17 @@ test("loadAppEnv accepts AI_PRIMARY_PROVIDER alias for openai", () => {
   assert.equal(env.OPENAI_API_KEY, "openai-test-key");
 });
 
+test("loadAppEnv accepts the legacy OPEN_AI_KEY alias for openai", () => {
+  const env = loadAppEnv({
+    NODE_ENV: "test",
+    AI_PROVIDER: "openai",
+    OPEN_AI_KEY: "legacy-openai-test-key",
+  });
+
+  assert.equal(env.AI_PROVIDER, "openai");
+  assert.equal(env.OPENAI_API_KEY, "legacy-openai-test-key");
+});
+
 test("loadAppEnv rejects identical primary and fallback providers", () => {
   assert.throws(
     () =>
