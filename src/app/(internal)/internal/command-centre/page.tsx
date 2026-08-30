@@ -29,29 +29,32 @@ export default async function CommandCentrePage() {
     <AppShell>
       <div className="space-y-8">
         <PageHeader
-          eyebrow="Prompt 37"
-          title="Command Centre Intelligence"
-          description="Live operational metrics from source records, lead flow, viewings, deals, and worker health."
+          eyebrow="Monday Morning"
+          title="PQ Command Centre"
+          description="What happened, what matters now, and what your team should do first."
         />
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <StatCard label="Qualified supply" value={String(snapshot.qualifiedSupply)} detail={<Link href="/internal/leads">Open lead room</Link>} />
-          <StatCard label="Direct demand" value={String(snapshot.directDemand)} detail={<Link href="/internal/demand-room">Open demand room</Link>} />
-          <StatCard label="Supply gap" value={String(snapshot.supplyGap)} detail={<Link href="/internal/shortage-intelligence">Open shortage intelligence</Link>} />
+          <StatCard label="Active deals" value={String(snapshot.activeDeals)} detail={<Link href="/internal/deals">Open deals</Link>} />
           <StatCard label="Hot replies" value={String(snapshot.hotReplies)} detail={<Link href="/internal/inbox">Open inbox</Link>} />
           <StatCard label="Viewings today" value={String(snapshot.viewingsToday)} detail={<Link href="/internal/viewings">Open viewings</Link>} />
-          <StatCard label="Active deals" value={String(snapshot.activeDeals)} detail={<Link href="/internal/deals">Open deals</Link>} />
-          <StatCard label="Stalled items" value={String(snapshot.stalledItems)} detail="Overdue todo/in-progress tasks" />
-          <StatCard label="Overnight intelligence" value={String(snapshot.overnightIntelligence)} detail="Leads created in last 12h" />
-          <StatCard label="Queue depth" value={String(snapshot.queueDepth)} detail={<Link href="/admin/operations">Open operations console</Link>} />
+          <StatCard label="Qualified leads" value={String(snapshot.qualifiedSupply)} detail={<Link href="/internal/leads?view=qualified">Open qualified leads</Link>} />
+          <StatCard label="Direct demand" value={String(snapshot.directDemand)} detail={<Link href="/internal/demand-room">Open demand room</Link>} />
+          <StatCard label="Overnight discoveries" value={String(snapshot.overnightIntelligence)} detail="New leads in last 12h" />
         </section>
 
-        <Card title="Daily run order" eyebrow="Agent interface">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <StatCard label="Stalled actions" value={String(snapshot.stalledItems)} detail="Overdue todo or in-progress tasks" />
+          <StatCard label="Supply gap" value={String(snapshot.supplyGap)} detail={<Link href="/internal/shortage-intelligence">Open shortage intelligence</Link>} />
+          <StatCard label="Automation queue" value={String(snapshot.queueDepth)} detail={<Link href="/admin/operations">Open operations console</Link>} />
+        </section>
+
+        <Card title="Start-of-day run order" eyebrow="Do these first">
           <div className="grid gap-2 text-sm md:grid-cols-2">
             <p className="pq-copy-muted">1. Handle HOT replies first.</p>
-            <p className="pq-copy-muted">2. Review priority leads.</p>
+            <p className="pq-copy-muted">2. Review qualified leads.</p>
             <p className="pq-copy-muted">3. Approve or edit outbound queue.</p>
-            <p className="pq-copy-muted">4. Work qualified matches.</p>
+            <p className="pq-copy-muted">4. Work best stock-demand matches.</p>
             <p className="pq-copy-muted">5. Book and complete viewings.</p>
             <p className="pq-copy-muted">6. Progress deals.</p>
             <p className="pq-copy-muted">7. Review AI activity only where exceptions exist.</p>
