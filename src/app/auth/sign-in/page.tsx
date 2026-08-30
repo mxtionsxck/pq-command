@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth, signIn } from "@/auth";
+import { AuthError } from "next-auth";
 import { AppShell } from "@/components/layout/app-shell";
 import { PqLogo } from "@/components/layout/pq-logo";
 import { Badge, Button } from "@/components/ui";
@@ -16,8 +17,18 @@ import {
 type SignInPageProps = Readonly<{
   searchParams: Promise<{
     callbackUrl?: string;
+    error?: string;
   }>;
 }>;
+
+function resolveSignInErrorMessage(errorCode: string | undefined) {
+  switch (errorCode) {
+    case "CredentialsSignin":
+      return "Incorrect username or password. Please try again.";
+    default:
+      return undefined;
+  }
+}
 
 async function signInAction(formData: FormData) {
   "use server";
@@ -46,17 +57,27 @@ async function localAdminSignInAction(formData: FormData) {
   const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  await signIn("credentials", {
-    username,
-    password,
-    redirectTo: callbackUrl,
-  });
+  try {
+    await signIn("credentials", {
+      username,
+      password,
+      redirectTo: callbackUrl,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      const code = error.type ?? "CredentialsSignin";
+      redirect(`/auth/sign-in?error=${encodeURIComponent(code)}`);
+    }
+
+    throw error;
+  }
 }
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const session = await auth();
   const params = await searchParams;
   const callbackUrl = sanitizeCallbackUrl(params.callbackUrl);
+  const signInErrorMessage = resolveSignInErrorMessage(params.error);
   const isEntraConfigured = isAuthProviderConfigured(appEnv);
   const isLocalAdminConfigured = isLocalAdminAuthConfigured(appEnv);
   const isConfigured = isAnyAuthProviderConfigured(appEnv);
@@ -84,6 +105,12 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           {!isConfigured ? (
             <p className="rounded-[var(--pq-radius-sm)] border border-[color:rgba(183,92,92,0.35)] bg-[rgba(183,92,92,0.12)] px-4 py-3 text-sm text-[color:var(--pq-color-ivory-100)]">
               Sign-in is disabled until authentication configuration is present.
+            </p>
+          ) : null}
+
+          {signInErrorMessage ? (
+            <p className="rounded-[var(--pq-radius-sm)] border border-[color:rgba(183,92,92,0.35)] bg-[rgba(183,92,92,0.12)] px-4 py-3 text-sm text-[color:var(--pq-color-ivory-100)]">
+              {signInErrorMessage}
             </p>
           ) : null}
 
