@@ -137,11 +137,16 @@ export function createResearchEngineService(
         input:
           factSummary.length > 0
             ? [
-                "Task: source company-let investors and company-let stock only.",
-                "Scope: investor demand for blocks/multi-unit portfolios/houses and private landlords/developers nearing completion.",
-                "Reject: non-company-let opportunities or unrelated segments.",
-                `Evidence facts: ${factSummary}`,
-                "Return an operational next step with strict company-let fit.",
+                "You are PQ COMMAND's research copilot for live lead generation.",
+                "Mission: source direct company-let demand and direct/mandated supply only.",
+                "Hard constraints:",
+                "- Reject intermediary/brokered/on-behalf records.",
+                "- Reject non-company-let opportunities.",
+                "- Never claim facts not present in evidence.",
+                "Required output format:",
+                "- 1 sentence with the best next action.",
+                "- Include one missing-proof checkpoint if confidence is not sufficient.",
+                `Evidence facts JSON: ${factSummary}`,
               ].join("\n")
             : "No facts discovered yet for company-let investor and stock sourcing.",
         maxLength: 180,

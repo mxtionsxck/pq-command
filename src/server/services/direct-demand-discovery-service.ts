@@ -2,6 +2,7 @@ import { getDb } from "@/db/client";
 import { getDatabaseConfig } from "@/db/config";
 import type { Requirement } from "@/db/models";
 import type { AuditActor } from "@/domain/audit/types";
+import { resolveAiProvider } from "@/ai";
 import { appEnv } from "@/lib/env";
 import { canSendOutreach } from "@/server/auth/rbac";
 import { createDirectDemandRepository } from "@/server/repositories/direct-demand-repository";
@@ -21,6 +22,22 @@ type DirectDemandDiscoveryDependencies = {
 
 type RelationshipType = "DIRECT" | "INTRODUCER" | "UNKNOWN";
 type Urgency = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+
+type AiDemandExtraction = {
+  relationshipType: RelationshipType;
+  directRelationshipVerified: boolean;
+  urgency: Urgency;
+  budgetMinCents?: number;
+  budgetMaxCents?: number;
+  bedroomsMin?: number;
+  bedroomsMax?: number;
+  unitCount?: number;
+  acceptableRadiusMiles?: number;
+  preferredArea?: string;
+  termMonths?: number;
+  purpose?: string;
+  rationale: string;
+};
 
 export interface DirectDemandDiscoveryResult {
   leadId: string;
@@ -331,6 +348,69 @@ function mapRequirementPatch(extracted: {
   };
 }
 
+function isRelationshipType(value: unknown): value is RelationshipType {
+  return value === "DIRECT" || value === "INTRODUCER" || value === "UNKNOWN";
+}
+
+function isUrgency(value: unknown): value is Urgency {
+  return value === "LOW" || value === "MEDIUM" || value === "HIGH" || value === "URGENT";
+}
+
+function toOptionalNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function toOptionalString(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function isAiDemandExtraction(value: unknown): value is AiDemandExtraction {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const row = value as Record<string, unknown>;
+  return (
+    isRelationshipType(row["relationshipType"]) &&
+    typeof row["directRelationshipVerified"] === "boolean" &&
+    isUrgency(row["urgency"]) &&
+    typeof row["rationale"] === "string"
+  );
+}
+
+function buildDemandExtractionPrompt(input: {
+  leadId: string;
+  leadSummary: string;
+  evidenceText: string[];
+  signalText: string[];
+  aggregateText: string;
+}) {
+  return [
+    "You are PQ COMMAND's lead-intake extraction engine.",
+    "Goal: extract DIRECT company-let demand only.",
+    "Hard rules:",
+    "- If wording suggests broker/intermediary/on-behalf/introducer, set relationshipType=INTRODUCER and directRelationshipVerified=false.",
+    "- Only set relationshipType=DIRECT when first-party demand is explicit.",
+    "- Never invent values; omit unknown optional fields.",
+    "- Urgency must be one of LOW|MEDIUM|HIGH|URGENT.",
+    "- Monetary amounts must be integer cents.",
+    "Output JSON object fields:",
+    "relationshipType,directRelationshipVerified,urgency,budgetMinCents,budgetMaxCents,bedroomsMin,bedroomsMax,unitCount,acceptableRadiusMiles,preferredArea,termMonths,purpose,rationale",
+    "Lead context:",
+    JSON.stringify(
+      {
+        leadId: input.leadId,
+        leadSummary: input.leadSummary,
+        evidence: input.evidenceText.slice(0, 12),
+        signals: input.signalText.slice(0, 8),
+        aggregateText: input.aggregateText.slice(0, 8_000),
+      },
+      null,
+      2,
+    ),
+  ].join("\n");
+}
+
 export function createDirectDemandDiscoveryService(
   dependencies: DirectDemandDiscoveryDependencies = {},
 ) {
@@ -372,11 +452,6 @@ export function createDirectDemandDiscoveryService(
         .trim();
 
       const relationship = detectRelationship([leadSummary, ...evidenceText]);
-      const proposedClassification = relationship.directRelationshipVerified
-        ? "DIRECT"
-        : relationship.relationshipType === "INTRODUCER"
-          ? "INTERMEDIARY"
-          : "UNKNOWN";
 
       const budget = parseBudget(aggregateText);
       const bedrooms = parseBedrooms(aggregateText);
@@ -389,43 +464,93 @@ export function createDirectDemandDiscoveryService(
       const urgency = parseUrgency(aggregateText);
       const evidenceIds = context.leadEvidence.map((item) => item.id);
 
+      const provider = resolveAiProvider(appEnv);
+      let aiExtraction:
+        | Awaited<ReturnType<typeof provider.structuredExtraction<AiDemandExtraction>>>
+        | null = null;
+      try {
+        aiExtraction = await provider.structuredExtraction<AiDemandExtraction>({
+          schemaName: "direct_demand_extraction_v1",
+          validator: isAiDemandExtraction,
+          input: buildDemandExtractionPrompt({
+            leadId: input.leadId,
+            leadSummary,
+            evidenceText,
+            signalText,
+            aggregateText,
+          }),
+        });
+      } catch {
+        aiExtraction = null;
+      }
+
+      const aiValues = aiExtraction?.ok
+        ? {
+            relationshipType: aiExtraction.output.relationshipType,
+            directRelationshipVerified: aiExtraction.output.directRelationshipVerified,
+            urgency: aiExtraction.output.urgency,
+            budgetMinCents: toOptionalNumber(aiExtraction.output.budgetMinCents),
+            budgetMaxCents: toOptionalNumber(aiExtraction.output.budgetMaxCents),
+            bedroomsMin: toOptionalNumber(aiExtraction.output.bedroomsMin),
+            bedroomsMax: toOptionalNumber(aiExtraction.output.bedroomsMax),
+            unitCount: toOptionalNumber(aiExtraction.output.unitCount),
+            acceptableRadiusMiles: toOptionalNumber(aiExtraction.output.acceptableRadiusMiles),
+            preferredArea: toOptionalString(aiExtraction.output.preferredArea),
+            termMonths: toOptionalNumber(aiExtraction.output.termMonths),
+            purpose: toOptionalString(aiExtraction.output.purpose),
+          }
+        : null;
+
+      const resolvedRelationshipType =
+        aiValues?.relationshipType ?? relationship.relationshipType;
+      const resolvedDirectRelationshipVerified =
+        aiValues?.directRelationshipVerified ?? relationship.directRelationshipVerified;
+      const resolvedPreferredArea = aiValues?.preferredArea ?? preferredArea;
+      const resolvedTermMonths = aiValues?.termMonths ?? termMonths;
+      const resolvedPurpose = aiValues?.purpose ?? purpose;
+      const proposedClassification = resolvedDirectRelationshipVerified
+        ? "DIRECT"
+        : resolvedRelationshipType === "INTRODUCER"
+          ? "INTERMEDIARY"
+          : "UNKNOWN";
+
       const extractedFieldCount = [
-        budget.min,
-        budget.max,
-        bedrooms.min,
-        bedrooms.max,
-        unitCount,
-        preferredArea,
-        acceptableRadiusMiles,
+        aiValues?.budgetMinCents ?? budget.min,
+        aiValues?.budgetMaxCents ?? budget.max,
+        aiValues?.bedroomsMin ?? bedrooms.min,
+        aiValues?.bedroomsMax ?? bedrooms.max,
+        aiValues?.unitCount ?? unitCount,
+        aiValues?.preferredArea ?? preferredArea,
+        aiValues?.acceptableRadiusMiles ?? acceptableRadiusMiles,
         startDate,
-        termMonths,
-        purpose,
+        aiValues?.termMonths ?? termMonths,
+        aiValues?.purpose ?? purpose,
       ].filter((value) => value !== undefined).length;
 
       if (
         shouldBlockExtraction({
           aggregateText,
           evidenceCount: context.leadEvidence.length,
-          relationshipType: relationship.relationshipType,
+          relationshipType: resolvedRelationshipType,
           extractedFieldCount,
         })
       ) {
         return {
           leadId: input.leadId,
           extracted: false,
-          relationshipType: relationship.relationshipType,
-          directRelationshipVerified: relationship.directRelationshipVerified,
+          relationshipType: resolvedRelationshipType,
+          directRelationshipVerified: resolvedDirectRelationshipVerified,
           reason:
             "Insufficient direct demand evidence; requirement extraction was intentionally skipped.",
         };
       }
 
-      if (!relationship.directRelationshipVerified) {
+      if (!resolvedDirectRelationshipVerified) {
         return {
           leadId: input.leadId,
           extracted: false,
-          relationshipType: relationship.relationshipType,
-          directRelationshipVerified: relationship.directRelationshipVerified,
+          relationshipType: resolvedRelationshipType,
+          directRelationshipVerified: resolvedDirectRelationshipVerified,
           reason:
             "Direct relationship is not verified; intermediary or unknown demand cannot enter direct pipeline.",
         };
@@ -439,9 +564,9 @@ export function createDirectDemandDiscoveryService(
             context.leadRow.sourceName ??
             "Unknown entity",
           relationshipToPropertyOrCompany:
-            relationship.relationshipType === "DIRECT"
+            resolvedRelationshipType === "DIRECT"
               ? "explicit first-party demand signal"
-              : relationship.relationshipType === "INTRODUCER"
+              : resolvedRelationshipType === "INTRODUCER"
                 ? "acting on behalf / broker-like wording"
                 : "insufficient direct ownership/control proof",
           evidenceSource: context.leadRow.sourceName ?? "unknown_source",
@@ -450,33 +575,57 @@ export function createDirectDemandDiscoveryService(
           evidenceType: "demand_intent_analysis",
           evidenceDate: new Date(),
           explanation:
-            relationship.relationshipType === "DIRECT"
+            resolvedRelationshipType === "DIRECT"
               ? "Detected direct first-party requirement language without intermediary indicators."
-              : relationship.relationshipType === "INTRODUCER"
+              : resolvedRelationshipType === "INTRODUCER"
                 ? "Detected intermediary indicators (on behalf/acting for/broker signals)."
                 : "Could not verify direct relationship with high confidence.",
-          confidence: relationship.relationshipType === "UNKNOWN" ? 55 : 82,
+          confidence: resolvedRelationshipType === "UNKNOWN" ? 55 : 82,
           proposedClassification,
         },
         actor,
       );
 
       const patch = mapRequirementPatch({
-        ...(budget.min !== undefined ? { budgetMinCents: budget.min } : {}),
-        ...(budget.max !== undefined ? { budgetMaxCents: budget.max } : {}),
-        ...(bedrooms.min !== undefined ? { bedroomsMin: bedrooms.min } : {}),
-        ...(bedrooms.max !== undefined ? { bedroomsMax: bedrooms.max } : {}),
-        ...(unitCount !== undefined ? { unitCount } : {}),
-        ...(acceptableRadiusMiles !== undefined
-          ? { acceptableRadiusMiles }
+        ...(aiValues?.budgetMinCents !== undefined
+          ? { budgetMinCents: aiValues.budgetMinCents }
+          : budget.min !== undefined
+            ? { budgetMinCents: budget.min }
+            : {}),
+        ...(aiValues?.budgetMaxCents !== undefined
+          ? { budgetMaxCents: aiValues.budgetMaxCents }
+          : budget.max !== undefined
+            ? { budgetMaxCents: budget.max }
+            : {}),
+        ...(aiValues?.bedroomsMin !== undefined
+          ? { bedroomsMin: aiValues.bedroomsMin }
+          : bedrooms.min !== undefined
+            ? { bedroomsMin: bedrooms.min }
+            : {}),
+        ...(aiValues?.bedroomsMax !== undefined
+          ? { bedroomsMax: aiValues.bedroomsMax }
+          : bedrooms.max !== undefined
+            ? { bedroomsMax: bedrooms.max }
+            : {}),
+        ...(aiValues?.unitCount !== undefined
+          ? { unitCount: aiValues.unitCount }
+          : unitCount !== undefined
+            ? { unitCount }
+            : {}),
+        ...(aiValues?.acceptableRadiusMiles !== undefined
+          ? { acceptableRadiusMiles: aiValues.acceptableRadiusMiles }
+          : acceptableRadiusMiles !== undefined
+            ? { acceptableRadiusMiles }
+            : {}),
+        ...(resolvedPreferredArea
+          ? { preferredArea: resolvedPreferredArea }
           : {}),
-        ...(preferredArea ? { preferredArea } : {}),
         ...(startDate ? { startDate } : {}),
-        ...(termMonths !== undefined ? { termMonths } : {}),
-        ...(purpose ? { purpose } : {}),
-        urgency,
-        relationshipType: relationship.relationshipType,
-        directRelationshipVerified: relationship.directRelationshipVerified,
+        ...(resolvedTermMonths !== undefined ? { termMonths: resolvedTermMonths } : {}),
+        ...(resolvedPurpose ? { purpose: resolvedPurpose } : {}),
+        urgency: aiValues?.urgency ?? urgency,
+        relationshipType: resolvedRelationshipType,
+        directRelationshipVerified: resolvedDirectRelationshipVerified,
         evidenceIds,
       });
 
@@ -501,7 +650,7 @@ export function createDirectDemandDiscoveryService(
       }
 
       let updatedLeadScore: number | undefined;
-      if (relationship.directRelationshipVerified) {
+      if (resolvedDirectRelationshipVerified) {
         const updatedLead = await repository.applyDirectPriorityBoost(
           input.leadId,
           8,
@@ -517,9 +666,15 @@ export function createDirectDemandDiscoveryService(
           entityId: requirement.id,
           metadata: {
             leadId: input.leadId,
-            relationshipType: relationship.relationshipType,
-            directRelationshipVerified: relationship.directRelationshipVerified,
+            relationshipType: resolvedRelationshipType,
+            directRelationshipVerified: resolvedDirectRelationshipVerified,
             evidenceCount: evidenceIds.length,
+            ...(aiExtraction?.ok
+              ? {
+                  aiProvider: aiExtraction.metadata.provider,
+                  aiModel: aiExtraction.metadata.model,
+                }
+              : {}),
           },
         });
       }
@@ -527,8 +682,8 @@ export function createDirectDemandDiscoveryService(
       return {
         leadId: input.leadId,
         extracted: Boolean(requirement),
-        relationshipType: relationship.relationshipType,
-        directRelationshipVerified: relationship.directRelationshipVerified,
+        relationshipType: resolvedRelationshipType,
+        directRelationshipVerified: resolvedDirectRelationshipVerified,
         ...(requirement?.id ? { requirementId: requirement.id } : {}),
         ...(updatedLeadScore !== undefined ? { updatedLeadScore } : {}),
       };
