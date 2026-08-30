@@ -80,7 +80,7 @@ function sanitizeValue(value: unknown, key = "", depth = 0): SanitizedValue {
 }
 
 function sanitizeRecord(
-  value: Record<string, unknown> | undefined,
+  value: Record<string, unknown> | null | undefined,
 ): Record<string, SanitizedValue> | undefined {
   if (!value) {
     return undefined;
