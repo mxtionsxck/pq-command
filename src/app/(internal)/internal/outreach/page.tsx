@@ -7,6 +7,7 @@ import { getDatabaseConfig } from "@/db/config";
 import { appEnv } from "@/lib/env";
 import { requireCurrentUserPermission } from "@/server/auth/session";
 import { createOutreachService } from "@/server/services/outreach-service";
+import { createProviderReadinessService } from "@/server/services/provider-readiness-service";
 
 import {
   buildOutreachCampaignAction,
@@ -79,6 +80,7 @@ export default async function OutreachPage({
     ...(unitCountMin !== undefined ? { unitCountMin } : {}),
   });
   const campaigns = await service.listCampaigns();
+  const readiness = createProviderReadinessService().getOutreachReadiness();
 
   return (
     <AppShell>
@@ -384,6 +386,37 @@ export default async function OutreachPage({
             </div>
           </Card>
         </section>
+
+        <Card title="Channel readiness" eyebrow="No simulated sends">
+          <div className="grid gap-3 md:grid-cols-3">
+            {[
+              { channel: "email", state: readiness.email },
+              { channel: "sms", state: readiness.sms },
+              { channel: "whatsapp", state: readiness.whatsapp },
+            ].map((row) => (
+              <article
+                className="rounded-[var(--pq-radius-sm)] border border-[color:var(--pq-border)] p-3"
+                key={row.channel}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm text-white">{row.channel}</p>
+                  <StatusPill
+                    tone={
+                      row.state.status === "connected"
+                        ? "success"
+                        : row.state.status === "configuration_required"
+                          ? "warning"
+                          : "neutral"
+                    }
+                  >
+                    {row.state.status.replaceAll("_", " ")}
+                  </StatusPill>
+                </div>
+                <p className="mt-1 text-xs pq-copy-muted">{row.state.detail}</p>
+              </article>
+            ))}
+          </div>
+        </Card>
 
         <Card title="Campaigns" eyebrow={`${campaigns.length} records`}>
           {campaigns.length === 0 ? (

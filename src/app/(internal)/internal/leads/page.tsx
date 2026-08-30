@@ -102,7 +102,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
         <PageHeader
           eyebrow="Lead Room"
           title="Signals to qualification"
-          description="Operational views for supply, demand, AI discovery, researching, and qualified leads with auditable status transitions."
+          description="Direct-only board: only verified direct leads are shown and promotable to qualification/outreach."
         />
 
         <Card title="Views and search">

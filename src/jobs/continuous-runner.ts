@@ -15,7 +15,7 @@ async function main() {
   const pollMs = readPollMs();
   const workerId = `constant-sourcing-bot-${process.pid}`;
   let stopped = false;
-  let intervalId: NodeJS.Timeout | undefined;
+  const intervalRef: { current?: NodeJS.Timeout } = {};
   let warnedMissingDatabase = false;
 
   const tick = async () => {
@@ -49,8 +49,8 @@ async function main() {
 
   const shutdown = async (signal: string) => {
     stopped = true;
-    if (intervalId) {
-      clearInterval(intervalId);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
     try {
       await service.requestGracefulShutdown();
@@ -68,7 +68,7 @@ async function main() {
   });
 
   await tick();
-  intervalId = setInterval(() => {
+  intervalRef.current = setInterval(() => {
     void tick();
   }, pollMs);
 }

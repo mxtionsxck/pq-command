@@ -143,6 +143,7 @@ export function createMockDiscoverySourceConnector(): DiscoveryPipelineConnector
       return {
         identityKey: toIdentityKey(item),
         leadLabel: item.companyName ?? item.contactName ?? item.title,
+        leadType: "supply",
         signalType: supplySignalType,
         supplySignalType,
         confidence: item.confidence,

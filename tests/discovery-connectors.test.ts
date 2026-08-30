@@ -372,6 +372,7 @@ function createRetryingMockConnector(): DiscoveryPipelineConnector {
       return {
         identityKey: `identity:${item.contactEmail}`,
         leadLabel: item.companyName ?? item.title,
+        leadType: "supply",
         signalType: "PRIVATE_LANDLORD",
         supplySignalType: "PRIVATE_LANDLORD",
         confidence: item.confidence,
@@ -658,7 +659,7 @@ test("prompt 20 supply discovery keeps weak ownership unresolved", async () => {
         },
       ],
       fetcher: async () =>
-        "<html><head><title>Portfolio update</title></head><body>London 5-bed re-listed availability. Mentioned by tenant forum without owner confirmation.</body></html>",
+        "<html><head><title>Portfolio update</title></head><body>London 5-bed re-listed availability for company let. Mentioned by tenant forum without owner confirmation.</body></html>",
     },
     {
       type: "system",

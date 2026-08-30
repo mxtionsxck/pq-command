@@ -221,9 +221,9 @@ test("lead room transitions are persisted and audited", async () => {
     outreachStatus: "not_started",
     scoreVersion: null,
     lastScoredAt: null,
-    directnessClassification: "UNKNOWN",
-    directnessConfidence: 50,
-    directnessVerified: false,
+    directnessClassification: "DIRECT",
+    directnessConfidence: 82,
+    directnessVerified: true,
     summary: null,
     receivedAt: null,
   };

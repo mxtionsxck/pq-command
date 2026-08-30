@@ -66,6 +66,7 @@ export function AppShell({ children }: AppShellProps) {
 
   const primaryNav = [
     { href: "/internal/command-centre", label: "Command Centre" },
+    { href: "/internal/hotel-deals", label: "Hotel Engine" },
     { href: "/internal/leads?view=qualified", label: "Qualified Leads" },
     { href: "/internal/inbox", label: "Inbox" },
     { href: "/internal/inbox?category=HOT", label: "Hot Replies" },
@@ -78,7 +79,10 @@ export function AppShell({ children }: AppShellProps) {
     { href: "/internal/stock-room", label: "Stock" },
     { href: "/internal/demand-room", label: "Demand" },
     { href: "/internal/outreach", label: "Outreach" },
-    { href: "/admin/operations", label: "System" },
+    { href: "/internal/rent-control", label: "Rent" },
+    { href: "/internal/tenancies", label: "Tenancies" },
+    { href: "/internal/documents", label: "Documents" },
+    { href: "/internal/system-health", label: "System Health" },
   ] as const;
 
   const isActive = (href: string) => {

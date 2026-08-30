@@ -107,6 +107,8 @@ export function createOutreachRepository(db: PQCommandDb) {
       const conditions = compactConditions([
         isNull(leads.archivedAt),
         eq(leads.leadType, "demand"),
+        eq(leads.directnessClassification, "DIRECT"),
+        eq(leads.directnessVerified, true),
         gte(leads.score, filter.minimumScore),
         filter.sourceId ? eq(leads.sourceId, filter.sourceId) : undefined,
         filter.location
@@ -121,6 +123,8 @@ export function createOutreachRepository(db: PQCommandDb) {
         filter.unitCountMin !== undefined
           ? gte(requirements.unitCount, filter.unitCountMin)
           : undefined,
+        eq(requirements.relationshipType, "DIRECT"),
+        eq(requirements.directRelationshipVerified, true),
         notExists(
           db
             .select({ id: suppressionList.id })

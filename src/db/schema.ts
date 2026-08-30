@@ -340,6 +340,35 @@ export const dealStatusEnum = pgEnum("deal_status", [
   "COMPLETED",
   "LOST",
 ]);
+export const tenancyStatusEnum = pgEnum("tenancy_status", [
+  "draft",
+  "active",
+  "ended",
+  "cancelled",
+]);
+export const rentFrequencyEnum = pgEnum("rent_frequency", [
+  "weekly",
+  "monthly",
+  "quarterly",
+]);
+export const rentLedgerTypeEnum = pgEnum("rent_ledger_type", [
+  "tenant_due",
+  "tenant_received",
+  "landlord_payable",
+  "landlord_paid",
+]);
+export const rentLedgerStatusEnum = pgEnum("rent_ledger_status", [
+  "UPCOMING",
+  "DUE_SOON",
+  "DUE",
+  "PARTIALLY_PAID",
+  "PAID",
+  "OVERDUE",
+  "DISPUTED",
+  "PAYABLE",
+  "PAID_TO_LANDLORD",
+  "CANCELLED",
+]);
 export const taskStatusEnum = pgEnum("task_status", [
   "todo",
   "in_progress",
@@ -588,7 +617,7 @@ export const sources = pgTable(
   },
   (table) => [
     uniqueIndex("sources_name_uq").on(table.name),
-    uniqueIndex("sources_connector_key_uq").on(table.connectorKey),
+    index("sources_connector_key_idx").on(table.connectorKey),
     index("sources_kind_status_idx").on(table.kind, table.status),
     index("sources_permission_idx").on(table.permissionStatus, table.enabled),
   ],
@@ -697,6 +726,9 @@ export const documents = pgTable(
     propertyId: text("property_id").references(() => properties.id, {
       onDelete: "set null",
     }),
+    tenancyId: text("tenancy_id").references(() => tenancies.id, {
+      onDelete: "set null",
+    }),
     dealId: text("deal_id").references(() => deals.id, {
       onDelete: "set null",
     }),
@@ -717,6 +749,7 @@ export const documents = pgTable(
     uniqueIndex("documents_storage_key_uq").on(table.storageKey),
     index("documents_company_status_idx").on(table.companyId, table.status),
     index("documents_property_status_idx").on(table.propertyId, table.status),
+    index("documents_tenancy_status_idx").on(table.tenancyId, table.status),
     index("documents_contact_status_idx").on(table.contactId, table.status),
     index("documents_property_type_idx").on(
       table.propertyId,
@@ -1580,6 +1613,76 @@ export const deals = pgTable(
     index("deals_property_status_idx").on(table.propertyId, table.status),
     index("deals_requirement_status_idx").on(table.requirementId, table.status),
     index("deals_lead_status_idx").on(table.leadId, table.status),
+  ],
+);
+
+export const tenancies = pgTable(
+  "tenancies",
+  {
+    ...baseColumns(),
+    archivedAt: archivedAtColumn(),
+    dealId: text("deal_id").references(() => deals.id, {
+      onDelete: "set null",
+    }),
+    propertyId: text("property_id").references(() => properties.id, {
+      onDelete: "set null",
+    }),
+    landlordCompanyId: text("landlord_company_id").references(() => companies.id, {
+      onDelete: "set null",
+    }),
+    tenantCompanyId: text("tenant_company_id").references(() => companies.id, {
+      onDelete: "set null",
+    }),
+    ownerUserId: text("owner_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    status: tenancyStatusEnum("status").notNull().default("draft"),
+    rentFrequency: rentFrequencyEnum("rent_frequency").notNull().default("monthly"),
+    rentAmountCents: integer("rent_amount_cents"),
+    rentDueDayOfMonth: integer("rent_due_day_of_month"),
+    tenancyStartDate: date("tenancy_start_date", { mode: "date" }),
+    tenancyEndDate: date("tenancy_end_date", { mode: "date" }),
+    landlordPaymentLeadDays: integer("landlord_payment_lead_days").notNull().default(2),
+    paymentReference: varchar("payment_reference", { length: 120 }),
+    notes: text("notes"),
+  },
+  (table) => [
+    index("tenancies_status_idx").on(table.status, table.updatedAt),
+    index("tenancies_property_idx").on(table.propertyId),
+    index("tenancies_deal_idx").on(table.dealId),
+  ],
+);
+
+export const rentLedgerEntries = pgTable(
+  "rent_ledger_entries",
+  {
+    ...baseColumns(),
+    archivedAt: archivedAtColumn(),
+    tenancyId: text("tenancy_id")
+      .notNull()
+      .references(() => tenancies.id, { onDelete: "cascade" }),
+    dealId: text("deal_id").references(() => deals.id, {
+      onDelete: "set null",
+    }),
+    propertyId: text("property_id").references(() => properties.id, {
+      onDelete: "set null",
+    }),
+    entryType: rentLedgerTypeEnum("entry_type").notNull(),
+    status: rentLedgerStatusEnum("status").notNull(),
+    dueDate: date("due_date", { mode: "date" }),
+    paymentDate: date("payment_date", { mode: "date" }),
+    amountDueCents: integer("amount_due_cents").notNull().default(0),
+    amountReceivedCents: integer("amount_received_cents").notNull().default(0),
+    amountOutstandingCents: integer("amount_outstanding_cents").notNull().default(0),
+    paymentReference: varchar("payment_reference", { length: 120 }),
+    externalReference: varchar("external_reference", { length: 191 }),
+    notes: text("notes"),
+  },
+  (table) => [
+    index("rent_ledger_tenancy_type_idx").on(table.tenancyId, table.entryType),
+    index("rent_ledger_status_due_idx").on(table.status, table.dueDate),
+    index("rent_ledger_payment_date_idx").on(table.paymentDate),
+    uniqueIndex("rent_ledger_external_ref_uq").on(table.externalReference),
   ],
 );
 

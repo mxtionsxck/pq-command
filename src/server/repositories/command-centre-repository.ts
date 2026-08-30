@@ -18,7 +18,14 @@ export function createCommandCentreRepository(db: PQCommandDb) {
       const [row] = await db
         .select({ count: count(leads.id) })
         .from(leads)
-        .where(and(eq(leads.leadType, "supply"), eq(leads.status, "qualified")));
+        .where(
+          and(
+            eq(leads.leadType, "supply"),
+            eq(leads.status, "qualified"),
+            eq(leads.directnessClassification, "DIRECT"),
+            eq(leads.directnessVerified, true),
+          ),
+        );
 
       return row?.count ?? 0;
     },
@@ -27,9 +34,13 @@ export function createCommandCentreRepository(db: PQCommandDb) {
       const [row] = await db
         .select({ count: count(requirements.id) })
         .from(requirements)
+        .leftJoin(leads, eq(leads.id, requirements.leadId))
         .where(
           and(
             eq(requirements.relationshipType, "DIRECT"),
+            eq(requirements.directRelationshipVerified, true),
+            eq(leads.directnessClassification, "DIRECT"),
+            eq(leads.directnessVerified, true),
             inArray(requirements.status, ["open", "matched"]),
           ),
         );

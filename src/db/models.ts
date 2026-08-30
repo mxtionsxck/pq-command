@@ -27,6 +27,8 @@ import {
   sources,
   suppressionList,
   tasks,
+  tenancies,
+  rentLedgerEntries,
   followUpQueue,
   shortageIntelligenceRows,
   lhaRates,
@@ -117,6 +119,10 @@ export type Deal = InferSelectModel<typeof deals>;
 export type NewDeal = InferInsertModel<typeof deals>;
 export type Task = InferSelectModel<typeof tasks>;
 export type NewTask = InferInsertModel<typeof tasks>;
+export type Tenancy = InferSelectModel<typeof tenancies>;
+export type NewTenancy = InferInsertModel<typeof tenancies>;
+export type RentLedgerEntry = InferSelectModel<typeof rentLedgerEntries>;
+export type NewRentLedgerEntry = InferInsertModel<typeof rentLedgerEntries>;
 export type Notification = InferSelectModel<typeof notifications>;
 export type NewNotification = InferInsertModel<typeof notifications>;
 export type Objective = InferSelectModel<typeof objectives>;

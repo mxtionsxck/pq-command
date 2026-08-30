@@ -1,6 +1,6 @@
 const nodeEnvValues = ["development", "test", "production"] as const;
 const appEnvValues = ["development", "test", "staging", "production"] as const;
-const aiProviderValues = ["openai"] as const;
+const aiProviderValues = ["openai", "gemini"] as const;
 
 type NodeEnv = (typeof nodeEnvValues)[number];
 type AppEnvironment = (typeof appEnvValues)[number];
@@ -21,7 +21,10 @@ export interface AppEnv {
   DATABASE_URL: string | undefined;
   STORAGE_ROOT: string | undefined;
   AI_PROVIDER: AiProvider | undefined;
+  AI_FALLBACK_PROVIDER: AiProvider | undefined;
+  AI_MODEL: string | undefined;
   OPENAI_API_KEY: string | undefined;
+  GEMINI_API_KEY: string | undefined;
   PUBLIC_BUSINESS_DATA_API_URL: string | undefined;
   PUBLIC_BUSINESS_DATA_API_KEY: string | undefined;
   PUBLIC_BUSINESS_DATA_RATE_LIMIT_PER_MINUTE: number | undefined;
@@ -151,7 +154,10 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
   const DATABASE_URL = readOptionalUrl(source, "DATABASE_URL");
   const STORAGE_ROOT = readOptional(source, "STORAGE_ROOT");
   const AI_PROVIDER = readOptional(source, "AI_PROVIDER");
+  const AI_FALLBACK_PROVIDER = readOptional(source, "AI_FALLBACK_PROVIDER");
+  const AI_MODEL = readOptional(source, "AI_MODEL");
   const OPENAI_API_KEY = readOptional(source, "OPENAI_API_KEY");
+  const GEMINI_API_KEY = readOptional(source, "GEMINI_API_KEY");
   const PUBLIC_BUSINESS_DATA_API_URL = readOptionalUrl(
     source,
     "PUBLIC_BUSINESS_DATA_API_URL",
@@ -172,15 +178,43 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
     );
   }
 
-  if (AI_PROVIDER && !OPENAI_API_KEY) {
+  if (
+    AI_FALLBACK_PROVIDER &&
+    !aiProviderValues.includes(AI_FALLBACK_PROVIDER as AiProvider)
+  ) {
     throw new Error(
-      "OPENAI_API_KEY is required when AI_PROVIDER is configured.",
+      `AI_FALLBACK_PROVIDER must be one of: ${aiProviderValues.join(", ")}.`,
     );
   }
 
-  if (OPENAI_API_KEY && AI_PROVIDER !== "openai") {
+  if (AI_PROVIDER && AI_FALLBACK_PROVIDER && AI_PROVIDER === AI_FALLBACK_PROVIDER) {
+    throw new Error("AI_FALLBACK_PROVIDER must be different from AI_PROVIDER.");
+  }
+
+  if (AI_PROVIDER === "openai" && !OPENAI_API_KEY) {
     throw new Error(
-      "AI_PROVIDER=openai is required when OPENAI_API_KEY is provided.",
+      "OPENAI_API_KEY is required when AI_PROVIDER=openai.",
+    );
+  }
+
+  if (AI_PROVIDER === "gemini" && !GEMINI_API_KEY) {
+    throw new Error(
+      "GEMINI_API_KEY is required when AI_PROVIDER=gemini.",
+    );
+  }
+
+  const openAiEnabled = AI_PROVIDER === "openai" || AI_FALLBACK_PROVIDER === "openai";
+  const geminiEnabled = AI_PROVIDER === "gemini" || AI_FALLBACK_PROVIDER === "gemini";
+
+  if (OPENAI_API_KEY && !openAiEnabled) {
+    throw new Error(
+      "AI_PROVIDER or AI_FALLBACK_PROVIDER must be openai when OPENAI_API_KEY is provided.",
+    );
+  }
+
+  if (GEMINI_API_KEY && !geminiEnabled) {
+    throw new Error(
+      "AI_PROVIDER or AI_FALLBACK_PROVIDER must be gemini when GEMINI_API_KEY is provided.",
     );
   }
 
@@ -214,7 +248,10 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
     DATABASE_URL,
     STORAGE_ROOT,
     AI_PROVIDER: AI_PROVIDER as AiProvider | undefined,
+    AI_FALLBACK_PROVIDER: AI_FALLBACK_PROVIDER as AiProvider | undefined,
+    AI_MODEL,
     OPENAI_API_KEY,
+    GEMINI_API_KEY,
     PUBLIC_BUSINESS_DATA_API_URL,
     PUBLIC_BUSINESS_DATA_API_KEY,
     PUBLIC_BUSINESS_DATA_RATE_LIMIT_PER_MINUTE,

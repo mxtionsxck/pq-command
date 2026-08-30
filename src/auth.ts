@@ -102,9 +102,15 @@ const providers = [
     : []),
 ];
 
+const resolvedAuthSecret =
+  appEnv.AUTH_SECRET ??
+  (appEnv.NODE_ENV !== "production"
+    ? "pq-command-dev-auth-secret-change-in-production"
+    : null);
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   trustHost: true,
-  ...(appEnv.AUTH_SECRET ? { secret: appEnv.AUTH_SECRET } : {}),
+  ...(resolvedAuthSecret ? { secret: resolvedAuthSecret } : {}),
   pages: {
     signIn: "/auth/sign-in",
   },

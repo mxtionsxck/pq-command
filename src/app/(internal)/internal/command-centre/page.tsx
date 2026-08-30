@@ -54,6 +54,11 @@ export default async function CommandCentrePage() {
         />
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <StatCard label="Hotel direct stock" value={String(snapshot.hotel.hotDirectStock)} detail={<Link href="/internal/hotel-deals">Open hotel engine</Link>} />
+          <StatCard label="Hotel direct buyers" value={String(snapshot.hotel.hotDirectBuyers)} detail={<Link href="/internal/hotel-deals">Open buyer side</Link>} />
+          <StatCard label="Hotel ready outreach" value={String(snapshot.hotel.readyToReachOut)} detail={<Link href="/internal/hotel-deals">REACH OUT queue</Link>} />
+          <StatCard label="Hotel responded" value={String(snapshot.hotel.respondedHumanActionRequired)} detail="Human takes over" />
+          <StatCard label="Hotel deals live" value={String(snapshot.hotel.dealsInProgress)} detail="Conversation to completion" />
           <StatCard label="Active deals" value={String(snapshot.activeDeals)} detail={<Link href="/internal/deals">Open deals</Link>} />
           <StatCard label="Hot replies" value={String(snapshot.hotReplies)} detail={<Link href="/internal/inbox">Open inbox</Link>} />
           <StatCard label="Viewings today" value={String(snapshot.viewingsToday)} detail={<Link href="/internal/viewings">Open viewings</Link>} />

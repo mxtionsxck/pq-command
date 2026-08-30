@@ -29,6 +29,22 @@ services:
         sync: false
       - key: PUBLIC_BASE_URL
         sync: false
+      - key: AI_PROVIDER
+        sync: false
+      - key: AI_FALLBACK_PROVIDER
+        sync: false
+      - key: AI_MODEL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PUBLIC_BUSINESS_DATA_API_URL
+        sync: false
+      - key: PUBLIC_BUSINESS_DATA_API_KEY
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
 
   - type: worker
     name: pq-command-worker
@@ -59,3 +75,43 @@ services:
           envVarKey: AUTH_LOCAL_ADMIN_USERNAME
       - key: AUTH_LOCAL_ADMIN_PASSWORD
         sync: false
+      - key: AI_PROVIDER
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: AI_PROVIDER
+      - key: AI_FALLBACK_PROVIDER
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: AI_FALLBACK_PROVIDER
+      - key: AI_MODEL
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: AI_MODEL
+      - key: OPENAI_API_KEY
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: OPENAI_API_KEY
+      - key: GEMINI_API_KEY
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: GEMINI_API_KEY
+      - key: PUBLIC_BUSINESS_DATA_API_URL
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: PUBLIC_BUSINESS_DATA_API_URL
+      - key: PUBLIC_BUSINESS_DATA_API_KEY
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: PUBLIC_BUSINESS_DATA_API_KEY
+      - key: SLACK_WEBHOOK_URL
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: SLACK_WEBHOOK_URL

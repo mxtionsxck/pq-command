@@ -9,11 +9,27 @@ export interface AiProviderDescriptor {
 }
 
 export function listAiProviders(env: AppEnv): AiProviderDescriptor[] {
-  if (env.AI_PROVIDER === "openai") {
-    return [{ name: "openai", status: "configured" }];
+  const providers: AiProviderDescriptor[] = [];
+
+  if (
+    (env.AI_PROVIDER === "openai" || env.AI_FALLBACK_PROVIDER === "openai") &&
+    env.OPENAI_API_KEY
+  ) {
+    providers.push({ name: "openai", status: "configured" });
   }
 
-  if (!env.AI_PROVIDER) {
+  if (
+    (env.AI_PROVIDER === "gemini" || env.AI_FALLBACK_PROVIDER === "gemini") &&
+    env.GEMINI_API_KEY
+  ) {
+    providers.push({ name: "gemini", status: "configured" });
+  }
+
+  if (providers.length > 0) {
+    return providers;
+  }
+
+  if (!env.AI_PROVIDER && !env.AI_FALLBACK_PROVIDER) {
     return [{ name: "mock", status: "configured" }];
   }
 
@@ -25,4 +41,5 @@ export function resolveAiProvider(env: AppEnv): AiProvider {
 }
 
 export * from "./mock-ai-provider";
+export * from "./live-ai-provider";
 export * from "./provider-validation";

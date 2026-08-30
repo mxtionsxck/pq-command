@@ -284,6 +284,38 @@ export default async function InternalHomePage() {
             </p>
           </Card>
           <Card
+            eyebrow="Reliability"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/system-health"
+              >
+                Open system health
+              </Link>
+            }
+            title="System health"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              See truthful integration, AI provider, and background job status in one place.
+            </p>
+          </Card>
+          <Card
+            eyebrow="Admin"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/admin/integrations"
+              >
+                Open integrations
+              </Link>
+            }
+            title="Integration setup"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              See connected, config-required, and disabled integrations without guesswork.
+            </p>
+          </Card>
+          <Card
             eyebrow="Comms"
             footer={
               <Link
@@ -298,6 +330,38 @@ export default async function InternalHomePage() {
             <p className="pq-copy-muted text-sm leading-6">
               Three-pane conversation inbox with categorization, assignment,
               reply drafts, link actions, and suppression controls.
+            </p>
+          </Card>
+          <Card
+            eyebrow="Tenancy"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/rent-control"
+              >
+                Open rent control
+              </Link>
+            }
+            title="Rent Control"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              Track live/completed company-let rent metrics and high-value opportunities.
+            </p>
+          </Card>
+          <Card
+            eyebrow="Compliance"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/documents"
+              >
+                Open document control
+              </Link>
+            }
+            title="Document Control"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              Verify contract/compliance coverage and review recent operational documents.
             </p>
           </Card>
           <Card

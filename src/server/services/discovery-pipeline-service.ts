@@ -86,6 +86,23 @@ function shouldQualify(features: {
   );
 }
 
+function shouldQualifyDemand(features: {
+  londonRelevance: boolean;
+  contactability: boolean;
+  timingSignal: boolean;
+  supportedRelationship: boolean;
+  multiUnitOpportunity: boolean;
+}) {
+  const strongSignals = [
+    features.londonRelevance,
+    features.contactability,
+    features.timingSignal,
+    features.multiUnitOpportunity,
+  ].filter(Boolean).length;
+
+  return features.supportedRelationship && strongSignals >= 2;
+}
+
 function inferDirectnessFromDiscovery(input: {
   summary: string;
   supportedRelationship: boolean;
@@ -252,7 +269,7 @@ export function createDiscoveryPipelineService(
             (await repository.createLeadForDiscovery(
               {
                 sourceId: source.id,
-                leadType: "supply",
+                leadType: normalised.leadType,
                 status: "researching",
                 score: 0,
                 confidence: Math.max(35, Math.round(normalised.confidence)),
@@ -332,7 +349,16 @@ export function createDiscoveryPipelineService(
 
           await scoringService.scoreLead(lead.id, actor);
 
-          if (shouldQualify(normalised.features)) {
+          const qualifies =
+            normalised.leadType === "demand"
+              ? shouldQualifyDemand(normalised.features)
+              : shouldQualify(normalised.features);
+
+          if (
+            qualifies &&
+            inferredDirectness.classification === "DIRECT" &&
+            inferredDirectness.verified
+          ) {
             await repository.markLeadQualified(lead.id);
             counters.qualifiedLeads += 1;
           }

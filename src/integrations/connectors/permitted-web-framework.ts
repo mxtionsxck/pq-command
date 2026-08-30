@@ -16,6 +16,7 @@ export interface WebFetchResult {
   domain: string;
   title: string;
   text: string;
+  discoveredLinks: string[];
   capturedAt: Date;
   provenance: string;
 }
@@ -43,7 +44,11 @@ function canonicaliseUrl(inputUrl: string): string {
   return url.toString();
 }
 
-function extractSafeText(html: string): { title: string; text: string } {
+function extractSafeText(html: string): {
+  title: string;
+  text: string;
+  discoveredLinks: string[];
+} {
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   const title = (titleMatch?.[1] ?? "Untitled")
     .replace(/<[^>]+>/g, " ")
@@ -59,9 +64,20 @@ function extractSafeText(html: string): { title: string; text: string } {
     .replace(/\s+/g, " ")
     .trim();
 
+  const discoveredLinks = Array.from(
+    new Set(
+      [...html.matchAll(/<a[^>]+href=["']([^"'#]+)["']/gi)]
+        .map((match) => match[1]?.trim())
+        .filter((href): href is string => Boolean(href))
+        .filter((href) => /^https?:\/\//i.test(href))
+        .slice(0, 40),
+    ),
+  );
+
   return {
     title,
     text: sanitized.slice(0, 4_000),
+    discoveredLinks,
   };
 }
 
@@ -175,6 +191,7 @@ export function createPermittedWebFramework(): PermittedWebFramework {
             domain,
             title: extracted.title,
             text: extracted.text,
+            discoveredLinks: extracted.discoveredLinks,
             capturedAt: new Date(),
             provenance: `public_web:${domain}`,
           });

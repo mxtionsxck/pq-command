@@ -12,6 +12,8 @@ import {
 import { createAuditService } from "./audit-event-service";
 import { createDiscoveryConnectorResolverService } from "./discovery-connector-resolver-service";
 import { createDiscoveryPipelineService } from "./discovery-pipeline-service";
+import { createHotelDealIntelligenceService } from "./hotel-deal-intelligence-service";
+import { createSourceExpansionService } from "./source-expansion-service";
 import { createSourceRegistryService } from "./source-registry-service";
 
 type WorkerHandler = (
@@ -29,6 +31,7 @@ type BackgroundJobDependencies = {
   connectorResolverService?: ReturnType<
     typeof createDiscoveryConnectorResolverService
   >;
+  sourceExpansionService?: ReturnType<typeof createSourceExpansionService>;
 };
 
 type EnqueueInput = {
@@ -148,6 +151,8 @@ export function createBackgroundJobInfrastructureService(
     const connectorResolverService =
       dependencies.connectorResolverService ??
       createDiscoveryConnectorResolverService();
+    const sourceExpansionService =
+      dependencies.sourceExpansionService ?? createSourceExpansionService();
     const configuredSourceId =
       typeof _payload["sourceId"] === "string" ? _payload["sourceId"] : undefined;
     const allSources = await sourceService.listSources();
@@ -216,6 +221,8 @@ export function createBackgroundJobInfrastructureService(
       throw new Error(errors.join("; "));
     }
 
+    const expansionResult = await sourceExpansionService.registerDiscoveredSources();
+
     return {
       itemsProcessed: processedSources,
       result: {
@@ -224,6 +231,8 @@ export function createBackgroundJobInfrastructureService(
         createdLeads,
         qualifiedLeads,
         createdSignals,
+        discoveredSourcesCreated: expansionResult.created,
+        discoveredSourcesSkipped: expansionResult.skipped,
         errors,
       },
     };
@@ -231,6 +240,45 @@ export function createBackgroundJobInfrastructureService(
   const handlers = {
     ...WORKERS,
     discovery: discoveryHandler,
+    research: async () => {
+      const hotelService = createHotelDealIntelligenceService();
+      const actor = {
+        type: "system" as const,
+        id: "hotel_research_worker",
+      };
+
+      const result = await hotelService.runUnifiedCycle(actor);
+
+      return {
+        itemsProcessed:
+          result.sell.verificationQueue +
+          result.buy.candidateRequirements +
+          result.match.matchesConsidered,
+        result: {
+          worker: "research",
+          vertical: "hotel",
+          ...result,
+        },
+      };
+    },
+    matching: async () => {
+      const hotelService = createHotelDealIntelligenceService();
+      const actor = {
+        type: "system" as const,
+        id: "hotel_match_worker",
+      };
+
+      const result = await hotelService.runLiveMatchCycle(actor);
+
+      return {
+        itemsProcessed: result.matchesConsidered,
+        result: {
+          worker: "matching",
+          vertical: "hotel",
+          ...result,
+        },
+      };
+    },
     ...dependencies.handlers,
   };
 

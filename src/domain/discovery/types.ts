@@ -35,6 +35,7 @@ export interface DiscoverySourceItem {
 export interface NormalisedDiscoveryItem {
   identityKey: string;
   leadLabel: string;
+  leadType: "supply" | "demand" | "ai_discovered";
   signalType: PipelineSignalType;
   supplySignalType: SupplySignalType;
   confidence: number;

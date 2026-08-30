@@ -10,10 +10,20 @@ import type { QueueWorkerName } from "@/server/repositories/background-jobs-repo
 import {
   createBackgroundJobInfrastructureService,
 } from "./background-job-infrastructure-service";
+import { createHotelDealIntelligenceService } from "./hotel-deal-intelligence-service";
 
 type CommandCentreDependencies = {
   repository?: CommandCentreRepository;
   jobsService?: ReturnType<typeof createBackgroundJobInfrastructureService>;
+  hotelService?: {
+    getPipelineSnapshot: () => Promise<{
+      hotDirectStock: number;
+      hotDirectBuyers: number;
+      readyToReachOut: number;
+      respondedHumanActionRequired: number;
+      dealsInProgress: number;
+    }>;
+  };
   now?: () => Date;
 };
 
@@ -35,6 +45,21 @@ export function createCommandCentreService(
   const repository = getRepository(dependencies.repository);
   const jobsService =
     dependencies.jobsService ?? createBackgroundJobInfrastructureService();
+  const hotelService =
+    dependencies.hotelService ??
+    (getDatabaseConfig(appEnv).configured
+      ? createHotelDealIntelligenceService()
+      : {
+          async getPipelineSnapshot() {
+            return {
+              hotDirectStock: 0,
+              hotDirectBuyers: 0,
+              readyToReachOut: 0,
+              respondedHumanActionRequired: 0,
+              dealsInProgress: 0,
+            };
+          },
+        });
   const now = dependencies.now ?? (() => new Date());
 
   return {
@@ -61,6 +86,13 @@ export function createCommandCentreService(
             paused: boolean;
             lastRun: Date | null;
           }>,
+          hotel: {
+            hotDirectStock: 0,
+            hotDirectBuyers: 0,
+            readyToReachOut: 0,
+            respondedHumanActionRequired: 0,
+            dealsInProgress: 0,
+          },
         };
       }
 
@@ -78,6 +110,7 @@ export function createCommandCentreService(
         topAcquisitionTargets,
         nextActions,
         workerHealth,
+        hotelSnapshot,
       ] = await Promise.all([
         repository.countQualifiedSupply(),
         repository.countDirectDemand(),
@@ -91,6 +124,7 @@ export function createCommandCentreService(
         repository.listTopAcquisitionTargets(),
         repository.listNextActions(),
         jobsService.workerHealth(),
+        hotelService.getPipelineSnapshot(),
       ]);
 
       return {
@@ -106,6 +140,13 @@ export function createCommandCentreService(
         topAcquisitionTargets,
         nextActions,
         workerHealth,
+        hotel: {
+          hotDirectStock: hotelSnapshot.hotDirectStock,
+          hotDirectBuyers: hotelSnapshot.hotDirectBuyers,
+          readyToReachOut: hotelSnapshot.readyToReachOut,
+          respondedHumanActionRequired: hotelSnapshot.respondedHumanActionRequired,
+          dealsInProgress: hotelSnapshot.dealsInProgress,
+        },
       };
     },
   };

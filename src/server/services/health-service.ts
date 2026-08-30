@@ -23,6 +23,9 @@ export function buildHealthSnapshot(
 ): HealthSnapshot {
   const database = getDatabaseConfig(env);
   const integrations = listIntegrations(env);
+  const connectedIntegrations = integrations.filter(
+    (integration) => integration.status === "connected",
+  ).length;
   const aiProviders = listAiProviders(env);
   const jobs = listJobs();
 
@@ -36,9 +39,7 @@ export function buildHealthSnapshot(
     ),
     createCheck(
       "integrations",
-      integrations.length > 0
-        ? `${integrations.length} integration(s) configured`
-        : "No external integrations configured",
+      `${connectedIntegrations}/${integrations.length} integration(s) connected`,
     ),
     createCheck(
       "ai",

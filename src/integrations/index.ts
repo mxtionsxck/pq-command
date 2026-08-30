@@ -2,27 +2,82 @@ import type { AppEnv } from "../lib/env";
 
 export interface IntegrationDescriptor {
   name: string;
-  status: "configured";
+  status: "connected" | "configuration_required" | "failed" | "not_enabled";
+  detail: string;
 }
 
 export function listIntegrations(env: AppEnv): IntegrationDescriptor[] {
   const integrations: IntegrationDescriptor[] = [];
 
   integrations.push({
-    name: "mock-email-adapter",
-    status: "configured",
+    name: "database",
+    status: env.DATABASE_URL ? "connected" : "configuration_required",
+    detail: env.DATABASE_URL
+      ? "DATABASE_URL configured"
+      : "Set DATABASE_URL to enable persistent operations.",
+  });
+
+  integrations.push({
+    name: "ai.openai",
+    status:
+      env.AI_PROVIDER === "openai" || env.AI_FALLBACK_PROVIDER === "openai"
+        ? env.OPENAI_API_KEY
+          ? "connected"
+          : "configuration_required"
+        : "not_enabled",
+    detail:
+      env.AI_PROVIDER === "openai" || env.AI_FALLBACK_PROVIDER === "openai"
+        ? env.OPENAI_API_KEY
+          ? "OpenAI configured for active routing."
+          : "Set OPENAI_API_KEY for OpenAI routing."
+        : "OpenAI is not enabled for this environment.",
+  });
+
+  integrations.push({
+    name: "ai.gemini",
+    status:
+      env.AI_PROVIDER === "gemini" || env.AI_FALLBACK_PROVIDER === "gemini"
+        ? env.GEMINI_API_KEY
+          ? "connected"
+          : "configuration_required"
+        : "not_enabled",
+    detail:
+      env.AI_PROVIDER === "gemini" || env.AI_FALLBACK_PROVIDER === "gemini"
+        ? env.GEMINI_API_KEY
+          ? "Gemini configured for active routing."
+          : "Set GEMINI_API_KEY for Gemini routing."
+        : "Gemini is not enabled for this environment.",
   });
 
   if (env.PUBLIC_BUSINESS_DATA_API_URL && env.PUBLIC_BUSINESS_DATA_API_KEY) {
     integrations.push({
       name: "public-business-data-api",
-      status: "configured",
+      status: "connected",
+      detail: "Public business data connector configured.",
+    });
+  } else {
+    integrations.push({
+      name: "public-business-data-api",
+      status: "configuration_required",
+      detail:
+        "Set PUBLIC_BUSINESS_DATA_API_URL and PUBLIC_BUSINESS_DATA_API_KEY together.",
     });
   }
 
-  if (env.SLACK_WEBHOOK_URL) {
-    integrations.push({ name: "slack-webhook", status: "configured" });
-  }
+  integrations.push({
+    name: "slack-webhook",
+    status: env.SLACK_WEBHOOK_URL ? "connected" : "not_enabled",
+    detail: env.SLACK_WEBHOOK_URL
+      ? "Slack webhook configured for operational alerts."
+      : "Set SLACK_WEBHOOK_URL to enable Slack alerting.",
+  });
+
+  integrations.push({
+    name: "email.delivery",
+    status: "configuration_required",
+    detail:
+      "Production email provider is not configured. System currently uses mock adapter.",
+  });
 
   return integrations;
 }

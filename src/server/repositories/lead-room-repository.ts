@@ -62,6 +62,8 @@ export function createLeadRoomRepository(db: PQCommandDb) {
     ) {
       const conditions = compactConditions([
         isNull(leads.archivedAt),
+        eq(leads.directnessClassification, "DIRECT"),
+        eq(leads.directnessVerified, true),
         viewCondition(view),
         search
           ? ilike(

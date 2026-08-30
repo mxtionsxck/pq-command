@@ -420,6 +420,17 @@ export function createDirectDemandDiscoveryService(
         };
       }
 
+      if (!relationship.directRelationshipVerified) {
+        return {
+          leadId: input.leadId,
+          extracted: false,
+          relationshipType: relationship.relationshipType,
+          directRelationshipVerified: relationship.directRelationshipVerified,
+          reason:
+            "Direct relationship is not verified; intermediary or unknown demand cannot enter direct pipeline.",
+        };
+      }
+
       await getDirectnessService().assess(
         {
           leadId: input.leadId,

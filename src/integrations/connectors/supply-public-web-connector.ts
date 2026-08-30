@@ -19,6 +19,14 @@ const defaultPolicies: DomainPolicyRecord[] = [
   },
 ];
 
+function isPolicyApproved(record: DomainPolicyRecord) {
+  return (
+    record.permissionStatus === "APPROVED" &&
+    record.robotsAllowed &&
+    record.termsAllowed
+  );
+}
+
 function detectSignalType(text: string) {
   const lower = text.toLowerCase();
 
@@ -42,6 +50,129 @@ function detectSignalType(text: string) {
   }
 
   return "AVAILABILITY" as const;
+}
+
+function detectLeadType(text: string) {
+  const lower = text.toLowerCase();
+
+  if (
+    lower.includes("investor") ||
+    lower.includes("looking for") ||
+    lower.includes("requirement") ||
+    lower.includes("we need") ||
+    lower.includes("units needed")
+  ) {
+    return "demand" as const;
+  }
+
+  return "supply" as const;
+}
+
+function hasCompanyLetIntent(text: string) {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("company let") ||
+    lower.includes("corporate let") ||
+    lower.includes("corporate housing") ||
+    lower.includes("relocation housing")
+  );
+}
+
+function hasInvestorOrStockSignal(text: string) {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("investor") ||
+    lower.includes("private landlord") ||
+    lower.includes("landlord") ||
+    lower.includes("developer") ||
+    lower.includes("portfolio") ||
+    lower.includes("multi-unit") ||
+    lower.includes("multiple units") ||
+    lower.includes("block") ||
+    lower.includes("units") ||
+    lower.includes("house")
+  );
+}
+
+function hasNearCompletionSignal(text: string) {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("nearing completion") ||
+    lower.includes("near completion") ||
+    lower.includes("completing") ||
+    lower.includes("completion due") ||
+    lower.includes("handover") ||
+    lower.includes("practical completion")
+  );
+}
+
+function hasIntermediarySignals(text: string) {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("estate agent") ||
+    lower.includes("letting agent") ||
+    lower.includes("broker") ||
+    lower.includes("sourcing") ||
+    lower.includes("on behalf") ||
+    lower.includes("for my client")
+  );
+}
+
+function isCompanyLetInvestorOrStockMatch(text: string) {
+  return hasCompanyLetIntent(text) && hasInvestorOrStockSignal(text);
+}
+
+function pickExpansionUrls(input: {
+  domainRegistry: DomainPolicyRecord[];
+  discoveredLinks: string[];
+  maxCount: number;
+}) {
+  const approvedDomains = new Set(
+    input.domainRegistry
+      .filter(isPolicyApproved)
+      .map((record) => record.domain.toLowerCase()),
+  );
+
+  const keywords = [
+    "company-let",
+    "company%20let",
+    "corporate-let",
+    "investor",
+    "landlord",
+    "developer",
+    "portfolio",
+    "block",
+    "multi-unit",
+    "completion",
+    "handover",
+  ];
+
+  const selected: string[] = [];
+
+  for (const href of input.discoveredLinks) {
+    if (selected.length >= input.maxCount) {
+      break;
+    }
+
+    try {
+      const parsed = new URL(href);
+      const host = parsed.hostname.toLowerCase();
+      if (!approvedDomains.has(host)) {
+        continue;
+      }
+
+      const lower = href.toLowerCase();
+      if (!keywords.some((keyword) => lower.includes(keyword))) {
+        continue;
+      }
+
+      selected.push(href);
+    } catch {
+      // Ignore invalid URLs.
+    }
+  }
+
+  return Array.from(new Set(selected));
 }
 
 function extractBedrooms(text: string) {
@@ -70,19 +201,40 @@ export function createSupplyPublicWebConnector(options: {
     maxRetries: 2,
 
     async fetch(sourceContext) {
+      const domainRegistry = options.domainRegistry ?? defaultPolicies;
       const result = await framework.fetchPublicPages({
         sourceEnabled: true,
         urls: options.urls,
-        domainRegistry: options.domainRegistry ?? defaultPolicies,
+        domainRegistry,
         ...(options.fetcher ? { fetcher: options.fetcher } : {}),
         maxRetries: 2,
       });
 
-      if (result.records.length === 0 && result.errors.length > 0) {
-        throw new Error(result.errors.join("; "));
+      const expansionUrls = pickExpansionUrls({
+        domainRegistry,
+        discoveredLinks: result.records.flatMap((record) => record.discoveredLinks),
+        maxCount: 18,
+      });
+
+      const expansionResult =
+        expansionUrls.length > 0
+          ? await framework.fetchPublicPages({
+              sourceEnabled: true,
+              urls: expansionUrls,
+              domainRegistry,
+              ...(options.fetcher ? { fetcher: options.fetcher } : {}),
+              maxRetries: 2,
+            })
+          : { records: [], errors: [] };
+
+      const records = [...result.records, ...expansionResult.records];
+      const errors = [...result.errors, ...expansionResult.errors];
+
+      if (records.length === 0 && errors.length > 0) {
+        throw new Error(errors.join("; "));
       }
 
-      return result.records.map((record, index) => {
+      return records.map((record, index) => {
         const bedrooms = extractBedrooms(record.text);
         const unitCount = record.text.toLowerCase().includes("multi-unit")
           ? 3
@@ -90,6 +242,7 @@ export function createSupplyPublicWebConnector(options: {
         const hasOwnerEvidence =
           record.text.toLowerCase().includes("owner confirmed") ||
           record.text.toLowerCase().includes("landlord confirmed");
+        const nearCompletion = hasNearCompletionSignal(record.text);
 
         return {
           externalId: `${record.domain}-${index}`,
@@ -104,22 +257,32 @@ export function createSupplyPublicWebConnector(options: {
           ...(bedrooms !== undefined ? { bedrooms } : {}),
           unitCount,
           companyLetFit: bedrooms && bedrooms >= 5 ? "strong" : "review",
-          confidence: hasOwnerEvidence ? 82 : 58,
+          confidence: nearCompletion
+            ? 86
+            : hasOwnerEvidence
+              ? 82
+              : 58,
           sourceProvenance: `${provenanceName}:${record.domain}`,
           fields: {
             sourceId: sourceContext.sourceId,
             ownershipSignal: hasOwnerEvidence
               ? "explicit_owner_statement"
               : "weak_reference",
+            nearCompletion,
+            discoveredLinks: record.discoveredLinks,
+            discoveryDepth: index < result.records.length ? 0 : 1,
             fetchProvenance: record.provenance,
           },
         } satisfies DiscoverySourceItem;
-      });
+      }).filter((record) =>
+        isCompanyLetInvestorOrStockMatch(`${record.title} ${record.description}`),
+      );
     },
 
     normalise(item) {
       const text = `${item.title} ${item.description}`;
       const supplySignalType = detectSignalType(text);
+      const leadType = detectLeadType(text);
       const bedrooms = item.bedrooms ?? 0;
       const londonRelevance = item.city?.toLowerCase() === "london";
       const bedroomsInRange = bedrooms >= 3 && bedrooms <= 7;
@@ -133,7 +296,10 @@ export function createSupplyPublicWebConnector(options: {
         text.toLowerCase().includes("from ");
       const contactability = Boolean(item.contactEmail || item.contactName);
       const supportedRelationship =
-        item.fields["ownershipSignal"] === "explicit_owner_statement";
+        !hasIntermediarySignals(text) &&
+        (item.fields["ownershipSignal"] === "explicit_owner_statement" ||
+          text.toLowerCase().includes("developer") ||
+          text.toLowerCase().includes("private landlord"));
 
       return {
         identityKey: [
@@ -144,7 +310,8 @@ export function createSupplyPublicWebConnector(options: {
           .filter(Boolean)
           .join("::"),
         leadLabel: item.companyName ?? item.title,
-        signalType: supplySignalType,
+        leadType,
+        signalType: leadType === "demand" ? "inquiry" : supplySignalType,
         supplySignalType,
         confidence: item.confidence,
         sourceReference: `${item.sourceProvenance}:${item.externalId}`,
@@ -157,6 +324,9 @@ export function createSupplyPublicWebConnector(options: {
             : []),
           ...(item.unitCount !== undefined
             ? [{ field: "unit_count", value: String(item.unitCount) }]
+            : []),
+          ...(item.fields["nearCompletion"] === true
+            ? [{ field: "development_status", value: "near_completion" }]
             : []),
         ],
         features: {

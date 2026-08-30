@@ -218,6 +218,15 @@ export function createLeadRoomService(
         return undefined;
       }
 
+      if (
+        status === "qualified" &&
+        (before.directnessClassification !== "DIRECT" || !before.directnessVerified)
+      ) {
+        throw new Error(
+          "Only verified direct leads can be marked as qualified.",
+        );
+      }
+
       const updated = await repository.updateLead(leadId, { status });
 
       if (!updated) {

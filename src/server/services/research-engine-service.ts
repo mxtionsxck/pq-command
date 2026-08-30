@@ -136,8 +136,14 @@ export function createResearchEngineService(
       const advisory = await provider.summarisation({
         input:
           factSummary.length > 0
-            ? `Generate operational next step from facts: ${factSummary}`
-            : "No facts discovered yet.",
+            ? [
+                "Task: source company-let investors and company-let stock only.",
+                "Scope: investor demand for blocks/multi-unit portfolios/houses and private landlords/developers nearing completion.",
+                "Reject: non-company-let opportunities or unrelated segments.",
+                `Evidence facts: ${factSummary}`,
+                "Return an operational next step with strict company-let fit.",
+              ].join("\n")
+            : "No facts discovered yet for company-let investor and stock sourcing.",
         maxLength: 180,
       });
 

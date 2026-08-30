@@ -39,3 +39,14 @@ test("loadAppEnv requires paired local admin credentials", () => {
     /AUTH_LOCAL_ADMIN_USERNAME and AUTH_LOCAL_ADMIN_PASSWORD must be configured together/,
   );
 });
+
+test("loadAppEnv accepts gemini as provider when API key is configured", () => {
+  const env = loadAppEnv({
+    NODE_ENV: "test",
+    AI_PROVIDER: "gemini",
+    GEMINI_API_KEY: "gemini-test-key",
+  });
+
+  assert.equal(env.AI_PROVIDER, "gemini");
+  assert.equal(env.GEMINI_API_KEY, "gemini-test-key");
+});
