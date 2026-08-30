@@ -252,7 +252,7 @@ function detectRelationship(texts: string[]): {
       joined,
     );
   const introducer =
-    /(on behalf|for my client|introducing|acting for|broker)/i.test(joined);
+    /(on behalf|for my client|introducing|acting for|broker|agent|deal sourcer|property sourcer|consultant|advisory)/i.test(joined);
 
   if (direct && !introducer) {
     return {

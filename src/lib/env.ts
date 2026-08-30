@@ -20,11 +20,21 @@ export interface AppEnv {
   AUTH_LOCAL_ADMIN_PASSWORD: string | undefined;
   DATABASE_URL: string | undefined;
   STORAGE_ROOT: string | undefined;
+  AI_PRIMARY_PROVIDER: AiProvider | undefined;
   AI_PROVIDER: AiProvider | undefined;
   AI_FALLBACK_PROVIDER: AiProvider | undefined;
   AI_MODEL: string | undefined;
+  OPENAI_CHEAP_MODEL: string | undefined;
+  OPENAI_STANDARD_MODEL: string | undefined;
+  OPENAI_REASONING_MODEL: string | undefined;
   OPENAI_API_KEY: string | undefined;
   GEMINI_API_KEY: string | undefined;
+  NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET: number | undefined;
+  NIGHT_SHIFT_RESIDENTIAL_DEMAND_TARGET: number | undefined;
+  NIGHT_SHIFT_HOTEL_SELLER_TARGET: number | undefined;
+  NIGHT_SHIFT_HOTEL_BUYER_TARGET: number | undefined;
+  NIGHT_SHIFT_DAILY_AI_BUDGET_GBP: number | undefined;
+  NIGHT_SHIFT_MONTHLY_AI_BUDGET_GBP: number | undefined;
   PUBLIC_BUSINESS_DATA_API_URL: string | undefined;
   PUBLIC_BUSINESS_DATA_API_KEY: string | undefined;
   PUBLIC_BUSINESS_DATA_RATE_LIMIT_PER_MINUTE: number | undefined;
@@ -109,6 +119,22 @@ function readOptionalInt(source: EnvSource, key: string): number | undefined {
   return parsed;
 }
 
+function readOptionalNumber(source: EnvSource, key: string): number | undefined {
+  const value = readOptional(source, key);
+
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Number.parseFloat(value);
+
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`${key} must be a non-negative number when provided.`);
+  }
+
+  return parsed;
+}
+
 function resolveDefaultAppEnv(nodeEnv: NodeEnv): AppEnvironment {
   return nodeEnv === "production" ? "production" : nodeEnv;
 }
@@ -153,11 +179,39 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
     (NODE_ENV === "development" ? "Loveteam@10" : undefined);
   const DATABASE_URL = readOptionalUrl(source, "DATABASE_URL");
   const STORAGE_ROOT = readOptional(source, "STORAGE_ROOT");
+  const AI_PRIMARY_PROVIDER = readOptional(source, "AI_PRIMARY_PROVIDER");
   const AI_PROVIDER = readOptional(source, "AI_PROVIDER");
   const AI_FALLBACK_PROVIDER = readOptional(source, "AI_FALLBACK_PROVIDER");
   const AI_MODEL = readOptional(source, "AI_MODEL");
+  const OPENAI_CHEAP_MODEL = readOptional(source, "OPENAI_CHEAP_MODEL");
+  const OPENAI_STANDARD_MODEL = readOptional(source, "OPENAI_STANDARD_MODEL");
+  const OPENAI_REASONING_MODEL = readOptional(source, "OPENAI_REASONING_MODEL");
   const OPENAI_API_KEY = readOptional(source, "OPENAI_API_KEY");
   const GEMINI_API_KEY = readOptional(source, "GEMINI_API_KEY");
+  const NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET = readOptionalInt(
+    source,
+    "NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET",
+  );
+  const NIGHT_SHIFT_RESIDENTIAL_DEMAND_TARGET = readOptionalInt(
+    source,
+    "NIGHT_SHIFT_RESIDENTIAL_DEMAND_TARGET",
+  );
+  const NIGHT_SHIFT_HOTEL_SELLER_TARGET = readOptionalInt(
+    source,
+    "NIGHT_SHIFT_HOTEL_SELLER_TARGET",
+  );
+  const NIGHT_SHIFT_HOTEL_BUYER_TARGET = readOptionalInt(
+    source,
+    "NIGHT_SHIFT_HOTEL_BUYER_TARGET",
+  );
+  const NIGHT_SHIFT_DAILY_AI_BUDGET_GBP = readOptionalNumber(
+    source,
+    "NIGHT_SHIFT_DAILY_AI_BUDGET_GBP",
+  );
+  const NIGHT_SHIFT_MONTHLY_AI_BUDGET_GBP = readOptionalNumber(
+    source,
+    "NIGHT_SHIFT_MONTHLY_AI_BUDGET_GBP",
+  );
   const PUBLIC_BUSINESS_DATA_API_URL = readOptionalUrl(
     source,
     "PUBLIC_BUSINESS_DATA_API_URL",
@@ -172,11 +226,24 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
   );
   const SLACK_WEBHOOK_URL = readOptionalUrl(source, "SLACK_WEBHOOK_URL");
 
+  if (
+    AI_PRIMARY_PROVIDER &&
+    !aiProviderValues.includes(AI_PRIMARY_PROVIDER as AiProvider)
+  ) {
+    throw new Error(
+      `AI_PRIMARY_PROVIDER must be one of: ${aiProviderValues.join(", ")}.`,
+    );
+  }
+
   if (AI_PROVIDER && !aiProviderValues.includes(AI_PROVIDER as AiProvider)) {
     throw new Error(
       `AI_PROVIDER must be one of: ${aiProviderValues.join(", ")}.`,
     );
   }
+
+  const resolvedPrimaryProvider =
+    (AI_PRIMARY_PROVIDER as AiProvider | undefined) ??
+    (AI_PROVIDER as AiProvider | undefined);
 
   if (
     AI_FALLBACK_PROVIDER &&
@@ -187,24 +254,30 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
     );
   }
 
-  if (AI_PROVIDER && AI_FALLBACK_PROVIDER && AI_PROVIDER === AI_FALLBACK_PROVIDER) {
+  if (
+    resolvedPrimaryProvider &&
+    AI_FALLBACK_PROVIDER &&
+    resolvedPrimaryProvider === AI_FALLBACK_PROVIDER
+  ) {
     throw new Error("AI_FALLBACK_PROVIDER must be different from AI_PROVIDER.");
   }
 
-  if (AI_PROVIDER === "openai" && !OPENAI_API_KEY) {
+  if (resolvedPrimaryProvider === "openai" && !OPENAI_API_KEY) {
     throw new Error(
       "OPENAI_API_KEY is required when AI_PROVIDER=openai.",
     );
   }
 
-  if (AI_PROVIDER === "gemini" && !GEMINI_API_KEY) {
+  if (resolvedPrimaryProvider === "gemini" && !GEMINI_API_KEY) {
     throw new Error(
       "GEMINI_API_KEY is required when AI_PROVIDER=gemini.",
     );
   }
 
-  const openAiEnabled = AI_PROVIDER === "openai" || AI_FALLBACK_PROVIDER === "openai";
-  const geminiEnabled = AI_PROVIDER === "gemini" || AI_FALLBACK_PROVIDER === "gemini";
+  const openAiEnabled =
+    resolvedPrimaryProvider === "openai" || AI_FALLBACK_PROVIDER === "openai";
+  const geminiEnabled =
+    resolvedPrimaryProvider === "gemini" || AI_FALLBACK_PROVIDER === "gemini";
 
   if (OPENAI_API_KEY && !openAiEnabled) {
     throw new Error(
@@ -247,11 +320,21 @@ export function loadAppEnv(source: EnvSource = process.env): AppEnv {
     AUTH_LOCAL_ADMIN_PASSWORD,
     DATABASE_URL,
     STORAGE_ROOT,
+    AI_PRIMARY_PROVIDER: resolvedPrimaryProvider,
     AI_PROVIDER: AI_PROVIDER as AiProvider | undefined,
     AI_FALLBACK_PROVIDER: AI_FALLBACK_PROVIDER as AiProvider | undefined,
     AI_MODEL,
+    OPENAI_CHEAP_MODEL,
+    OPENAI_STANDARD_MODEL,
+    OPENAI_REASONING_MODEL,
     OPENAI_API_KEY,
     GEMINI_API_KEY,
+    NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET,
+    NIGHT_SHIFT_RESIDENTIAL_DEMAND_TARGET,
+    NIGHT_SHIFT_HOTEL_SELLER_TARGET,
+    NIGHT_SHIFT_HOTEL_BUYER_TARGET,
+    NIGHT_SHIFT_DAILY_AI_BUDGET_GBP,
+    NIGHT_SHIFT_MONTHLY_AI_BUDGET_GBP,
     PUBLIC_BUSINESS_DATA_API_URL,
     PUBLIC_BUSINESS_DATA_API_KEY,
     PUBLIC_BUSINESS_DATA_RATE_LIMIT_PER_MINUTE,

@@ -1,6 +1,8 @@
 import { getDb } from "@/db/client";
 import { getDatabaseConfig } from "@/db/config";
+import { leads } from "@/db/schema";
 import type { AuditActor } from "@/domain/audit/types";
+import { and, desc, eq, ilike, inArray, isNull, not, or } from "drizzle-orm";
 import { appEnv } from "@/lib/env";
 import { canManageSources } from "@/server/auth/rbac";
 import {
@@ -12,7 +14,9 @@ import {
 import { createAuditService } from "./audit-event-service";
 import { createDiscoveryConnectorResolverService } from "./discovery-connector-resolver-service";
 import { createDiscoveryPipelineService } from "./discovery-pipeline-service";
+import { createDirectDemandDiscoveryService } from "./direct-demand-discovery-service";
 import { createHotelDealIntelligenceService } from "./hotel-deal-intelligence-service";
+import { createMatchingEngineService } from "./matching-engine-service";
 import { createSourceExpansionService } from "./source-expansion-service";
 import { createSourceRegistryService } from "./source-registry-service";
 
@@ -114,6 +118,37 @@ function bucketStart(value: Date, intervalMinutes: number) {
 }
 
 let shutdownRequested = false;
+
+function resolveNightShiftConfig() {
+  const residentialStockTarget = Math.max(
+    1,
+    appEnv.NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET ?? 100,
+  );
+  const residentialDemandTarget = Math.max(
+    1,
+    appEnv.NIGHT_SHIFT_RESIDENTIAL_DEMAND_TARGET ?? 100,
+  );
+  const hotelSellerTarget = Math.max(1, appEnv.NIGHT_SHIFT_HOTEL_SELLER_TARGET ?? 100);
+  const hotelBuyerTarget = Math.max(1, appEnv.NIGHT_SHIFT_HOTEL_BUYER_TARGET ?? 100);
+  const dailyAiBudgetGbp = appEnv.NIGHT_SHIFT_DAILY_AI_BUDGET_GBP ?? 10;
+
+  // Conservative planner: cap candidate deep-research volume using a fixed per-candidate estimate.
+  const estimatedGbpPerCandidate = 0.02;
+  const hardCandidateBudget = Math.max(
+    0,
+    Math.floor(dailyAiBudgetGbp / estimatedGbpPerCandidate),
+  );
+
+  return {
+    residentialStockTarget,
+    residentialDemandTarget,
+    hotelSellerTarget,
+    hotelBuyerTarget,
+    dailyAiBudgetGbp,
+    estimatedGbpPerCandidate,
+    hardCandidateBudget,
+  };
+}
 
 function isAutomatedSourceCandidate(input: {
   connectorKey: string | null;
@@ -241,22 +276,177 @@ export function createBackgroundJobInfrastructureService(
     ...WORKERS,
     discovery: discoveryHandler,
     research: async () => {
+      if (!getDatabaseConfig(appEnv).configured) {
+        return {
+          itemsProcessed: 0,
+          result: {
+            worker: "research",
+            note: "DATABASE_URL is required before night-shift research can run.",
+          },
+        };
+      }
+
+      const db = getDb();
+      const directDemandService = createDirectDemandDiscoveryService();
+      const matchingService = createMatchingEngineService();
       const hotelService = createHotelDealIntelligenceService();
+      const config = resolveNightShiftConfig();
+      const requestedTotal =
+        config.residentialStockTarget +
+        config.residentialDemandTarget +
+        config.hotelSellerTarget +
+        config.hotelBuyerTarget;
+      const allowedTotal = Math.min(
+        requestedTotal,
+        Math.max(1, config.hardCandidateBudget),
+      );
+      const allocationRatio = requestedTotal > 0 ? allowedTotal / requestedTotal : 1;
+      const residentialStockTarget = Math.max(
+        1,
+        Math.floor(config.residentialStockTarget * allocationRatio),
+      );
+      const residentialDemandTarget = Math.max(
+        1,
+        Math.floor(config.residentialDemandTarget * allocationRatio),
+      );
+      const hotelSellerTarget = Math.max(
+        1,
+        Math.floor(config.hotelSellerTarget * allocationRatio),
+      );
+      const hotelBuyerTarget = Math.max(
+        1,
+        Math.floor(config.hotelBuyerTarget * allocationRatio),
+      );
       const actor = {
         type: "system" as const,
-        id: "hotel_research_worker",
+        id: "pq_night_shift_worker",
       };
 
-      const result = await hotelService.runUnifiedCycle(actor);
+      const residentialStockPromise = (async () => {
+        const candidates = await db
+          .select({
+            id: leads.id,
+            directnessClassification: leads.directnessClassification,
+            directnessVerified: leads.directnessVerified,
+          })
+          .from(leads)
+          .where(
+            and(
+              eq(leads.leadType, "supply"),
+              inArray(leads.status, ["new", "researching", "qualified", "nurturing"]),
+              isNull(leads.archivedAt),
+              or(isNull(leads.summary), not(ilike(leads.summary, "%hotel%"))),
+            ),
+          )
+          .orderBy(desc(leads.updatedAt))
+          .limit(residentialStockTarget);
+
+        const directVerified = candidates.filter(
+          (item) =>
+            item.directnessClassification === "DIRECT" && item.directnessVerified,
+        ).length;
+
+        return {
+          candidatesResearched: candidates.length,
+          directVerified,
+        };
+      })();
+
+      const residentialDemandPromise = (async () => {
+        const demandCandidates = await db
+          .select({ id: leads.id })
+          .from(leads)
+          .where(
+            and(
+              eq(leads.leadType, "demand"),
+              inArray(leads.status, ["new", "researching", "qualified", "nurturing"]),
+              isNull(leads.archivedAt),
+              or(isNull(leads.summary), not(ilike(leads.summary, "%hotel%"))),
+            ),
+          )
+          .orderBy(desc(leads.updatedAt))
+          .limit(residentialDemandTarget);
+
+        let extracted = 0;
+        let directVerified = 0;
+        let matched = 0;
+
+        for (const lead of demandCandidates) {
+          try {
+            const result = await directDemandService.discover(
+              { leadId: lead.id },
+              actor,
+            );
+
+            if (result.extracted) {
+              extracted += 1;
+            }
+            if (result.directRelationshipVerified) {
+              directVerified += 1;
+            }
+
+            if (result.requirementId) {
+              await matchingService.runRequirementMatch(result.requirementId, actor);
+              matched += 1;
+            }
+          } catch {
+            // Keep night-shift stream resilient per lead.
+          }
+        }
+
+        return {
+          candidatesResearched: demandCandidates.length,
+          requirementsExtracted: extracted,
+          directVerified,
+          requirementsMatched: matched,
+        };
+      })();
+
+      const hotelSellerPromise = hotelService.runSellSideResearchCycle(actor, {
+        sellerTarget: hotelSellerTarget,
+      });
+      const hotelBuyerPromise = hotelService.runBuySideResearchCycle(actor, {
+        buyerTarget: hotelBuyerTarget,
+      });
+
+      const [residentialStock, residentialDemand, hotelSell, hotelBuy] =
+        await Promise.all([
+          residentialStockPromise,
+          residentialDemandPromise,
+          hotelSellerPromise,
+          hotelBuyerPromise,
+        ]);
+
+      const hotelMatch = await hotelService.runLiveMatchCycle(actor, {
+        matchTarget: Math.max(10, Math.floor(hotelBuyerTarget * 0.4)),
+      });
+
+      const result = {
+        budget: {
+          dailyAiBudgetGbp: config.dailyAiBudgetGbp,
+          estimatedGbpPerCandidate: config.estimatedGbpPerCandidate,
+          requestedCandidates: requestedTotal,
+          allowedCandidates: allowedTotal,
+        },
+        streams: {
+          residentialStock,
+          residentialDemand,
+          hotelSell,
+          hotelBuy,
+          hotelMatch,
+        },
+      };
 
       return {
         itemsProcessed:
-          result.sell.verificationQueue +
-          result.buy.candidateRequirements +
-          result.match.matchesConsidered,
+          residentialStock.candidatesResearched +
+          residentialDemand.candidatesResearched +
+          hotelSell.verificationQueue +
+          hotelBuy.candidateRequirements +
+          hotelMatch.matchesConsidered,
         result: {
           worker: "research",
-          vertical: "hotel",
+          vertical: "residential_and_hotel",
           ...result,
         },
       };

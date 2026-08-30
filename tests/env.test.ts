@@ -50,3 +50,27 @@ test("loadAppEnv accepts gemini as provider when API key is configured", () => {
   assert.equal(env.AI_PROVIDER, "gemini");
   assert.equal(env.GEMINI_API_KEY, "gemini-test-key");
 });
+
+test("loadAppEnv accepts AI_PRIMARY_PROVIDER alias for openai", () => {
+  const env = loadAppEnv({
+    NODE_ENV: "test",
+    AI_PRIMARY_PROVIDER: "openai",
+    OPENAI_API_KEY: "openai-test-key",
+  });
+
+  assert.equal(env.AI_PRIMARY_PROVIDER, "openai");
+  assert.equal(env.OPENAI_API_KEY, "openai-test-key");
+});
+
+test("loadAppEnv rejects identical primary and fallback providers", () => {
+  assert.throws(
+    () =>
+      loadAppEnv({
+        NODE_ENV: "test",
+        AI_PRIMARY_PROVIDER: "openai",
+        AI_FALLBACK_PROVIDER: "openai",
+        OPENAI_API_KEY: "openai-test-key",
+      }),
+    /AI_FALLBACK_PROVIDER must be different from AI_PROVIDER/,
+  );
+});

@@ -10,12 +10,39 @@ function providerConfigured(env: AppEnv, provider: "openai" | "gemini") {
     : Boolean(env.GEMINI_API_KEY);
 }
 
+function openAiModelByTask(env: AppEnv) {
+  return {
+    cheap: env.OPENAI_CHEAP_MODEL ?? "gpt-4.1-mini",
+    standard: env.OPENAI_STANDARD_MODEL ?? env.AI_MODEL ?? "gpt-4.1",
+    reasoning: env.OPENAI_REASONING_MODEL ?? "o4-mini",
+  };
+}
+
 function createConfiguredProvider(env: AppEnv, provider: "openai" | "gemini") {
   if (provider === "openai" && env.OPENAI_API_KEY) {
-    return createOpenAiProvider({
+    const models = openAiModelByTask(env);
+    const cheapProvider = createOpenAiProvider({
       apiKey: env.OPENAI_API_KEY,
-      model: env.AI_MODEL ?? "gpt-4.1-mini",
+      model: models.cheap,
     });
+    const standardProvider = createOpenAiProvider({
+      apiKey: env.OPENAI_API_KEY,
+      model: models.standard,
+    });
+    const reasoningProvider = createOpenAiProvider({
+      apiKey: env.OPENAI_API_KEY,
+      model: models.reasoning,
+    });
+
+    return {
+      providerName: "openai",
+      modelName: `${models.cheap}|${models.standard}|${models.reasoning}`,
+      structuredExtraction: (request) => standardProvider.structuredExtraction(request),
+      classification: (request) => cheapProvider.classification(request),
+      summarisation: (request) => cheapProvider.summarisation(request),
+      drafting: (request) => standardProvider.drafting(request),
+      scoringRecommendation: (request) => reasoningProvider.scoringRecommendation(request),
+    } satisfies AiProvider;
   }
 
   if (provider === "gemini" && env.GEMINI_API_KEY) {
@@ -76,18 +103,20 @@ function withFallback(primary: AiProvider, fallback: AiProvider): AiProvider {
 }
 
 export function createAiProvider(env: AppEnv): AiProvider {
-  if (!env.AI_PROVIDER) {
+  const primaryProviderName = env.AI_PRIMARY_PROVIDER ?? env.AI_PROVIDER;
+
+  if (!primaryProviderName) {
     return createMockAiProvider();
   }
 
-  const primaryProvider = createConfiguredProvider(env, env.AI_PROVIDER);
+  const primaryProvider = createConfiguredProvider(env, primaryProviderName);
   if (!primaryProvider) {
     return createMockAiProvider();
   }
 
   if (
     env.AI_FALLBACK_PROVIDER &&
-    env.AI_FALLBACK_PROVIDER !== env.AI_PROVIDER &&
+    env.AI_FALLBACK_PROVIDER !== primaryProviderName &&
     providerConfigured(env, env.AI_FALLBACK_PROVIDER)
   ) {
     const fallbackProvider = createConfiguredProvider(env, env.AI_FALLBACK_PROVIDER);

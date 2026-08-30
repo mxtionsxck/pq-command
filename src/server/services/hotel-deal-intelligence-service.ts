@@ -63,8 +63,19 @@ type MatchResult = {
 
 const INTERMEDIARY_TERMS = [
   "broker",
+  "hotel broker",
   "agent",
+  "hotel agent",
+  "letting agent",
+  "estate agent",
   "introducer",
+  "deal packager",
+  "lead generator",
+  "marketing company",
+  "advisory firm",
+  "asset manager",
+  "management-only",
+  "distributor",
   "consultant",
   "deal finder",
   "intermediary",
@@ -699,7 +710,10 @@ export function createHotelDealIntelligenceService() {
       return results.sort((a, b) => b.score - a.score).slice(0, limit);
     },
 
-    async runSellSideResearchCycle(actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT" }) {
+    async runSellSideResearchCycle(
+      actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT" },
+      options?: { sellerTarget?: number },
+    ) {
       ensureAccess(actor);
 
       if (!db) {
@@ -708,6 +722,7 @@ export function createHotelDealIntelligenceService() {
 
       const seed = await this.seedMasterInventory(actor);
 
+      const sellerTarget = Math.max(1, options?.sellerTarget ?? 120);
       const unverifiedStockLeads = await db
         .select()
         .from(leads)
@@ -720,7 +735,7 @@ export function createHotelDealIntelligenceService() {
           ),
         )
         .orderBy(desc(leads.updatedAt))
-        .limit(120);
+        .limit(sellerTarget);
 
       let tasksCreated = 0;
       for (const lead of unverifiedStockLeads) {
@@ -747,13 +762,17 @@ export function createHotelDealIntelligenceService() {
       };
     },
 
-    async runBuySideResearchCycle(actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT" }) {
+    async runBuySideResearchCycle(
+      actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT" },
+      options?: { buyerTarget?: number },
+    ) {
       ensureAccess(actor);
 
       if (!db) {
         throw new Error("DATABASE_URL is required before buy-side research can run.");
       }
 
+      const buyerTarget = Math.max(1, options?.buyerTarget ?? 120);
       const candidateRequirements = await db
         .select({
           requirement: requirements,
@@ -773,7 +792,7 @@ export function createHotelDealIntelligenceService() {
           ),
         )
         .orderBy(desc(requirements.updatedAt))
-        .limit(120);
+        .limit(buyerTarget);
 
       let directProfiles = 0;
       let decisionMakerTasks = 0;
@@ -810,14 +829,17 @@ export function createHotelDealIntelligenceService() {
       };
     },
 
-    async runLiveMatchCycle(actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT" }) {
+    async runLiveMatchCycle(
+      actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT" },
+      options?: { matchTarget?: number },
+    ) {
       ensureAccess(actor);
 
       if (!db) {
         throw new Error("DATABASE_URL is required before match cycle can run.");
       }
 
-      const matches = await this.generateMatches(40);
+      const matches = await this.generateMatches(Math.max(1, options?.matchTarget ?? 40));
       let highConfidence = 0;
       let handoffTasks = 0;
 
@@ -852,10 +874,25 @@ export function createHotelDealIntelligenceService() {
       };
     },
 
-    async runUnifiedCycle(actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT" }) {
-      const sell = await this.runSellSideResearchCycle(actor);
-      const buy = await this.runBuySideResearchCycle(actor);
-      const match = await this.runLiveMatchCycle(actor);
+    async runUnifiedCycle(
+      actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT" },
+      options?: { sellerTarget?: number; buyerTarget?: number; matchTarget?: number },
+    ) {
+      const sell = await this.runSellSideResearchCycle(actor, {
+        ...(options?.sellerTarget !== undefined
+          ? { sellerTarget: options.sellerTarget }
+          : {}),
+      });
+      const buy = await this.runBuySideResearchCycle(actor, {
+        ...(options?.buyerTarget !== undefined
+          ? { buyerTarget: options.buyerTarget }
+          : {}),
+      });
+      const match = await this.runLiveMatchCycle(actor, {
+        ...(options?.matchTarget !== undefined
+          ? { matchTarget: options.matchTarget }
+          : {}),
+      });
 
       return {
         sell,

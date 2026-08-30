@@ -31,11 +31,31 @@ services:
         sync: false
       - key: AI_PROVIDER
         value: openai
+      - key: AI_PRIMARY_PROVIDER
+        value: openai
       - key: AI_FALLBACK_PROVIDER
         sync: false
       - key: AI_MODEL
         sync: false
+      - key: OPENAI_CHEAP_MODEL
+        sync: false
+      - key: OPENAI_STANDARD_MODEL
+        sync: false
+      - key: OPENAI_REASONING_MODEL
+        sync: false
       - key: OPENAI_API_KEY
+        sync: false
+      - key: NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET
+        sync: false
+      - key: NIGHT_SHIFT_RESIDENTIAL_DEMAND_TARGET
+        sync: false
+      - key: NIGHT_SHIFT_HOTEL_SELLER_TARGET
+        sync: false
+      - key: NIGHT_SHIFT_HOTEL_BUYER_TARGET
+        sync: false
+      - key: NIGHT_SHIFT_DAILY_AI_BUDGET_GBP
+        sync: false
+      - key: NIGHT_SHIFT_MONTHLY_AI_BUDGET_GBP
         sync: false
       - key: PUBLIC_BUSINESS_DATA_API_URL
         sync: false
@@ -78,6 +98,11 @@ services:
           type: web
           name: pq-command-web
           envVarKey: AI_PROVIDER
+      - key: AI_PRIMARY_PROVIDER
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: AI_PRIMARY_PROVIDER
       - key: AI_FALLBACK_PROVIDER
         fromService:
           type: web
@@ -88,11 +113,56 @@ services:
           type: web
           name: pq-command-web
           envVarKey: AI_MODEL
+      - key: OPENAI_CHEAP_MODEL
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: OPENAI_CHEAP_MODEL
+      - key: OPENAI_STANDARD_MODEL
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: OPENAI_STANDARD_MODEL
+      - key: OPENAI_REASONING_MODEL
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: OPENAI_REASONING_MODEL
       - key: OPENAI_API_KEY
         fromService:
           type: web
           name: pq-command-web
           envVarKey: OPENAI_API_KEY
+      - key: NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: NIGHT_SHIFT_RESIDENTIAL_STOCK_TARGET
+      - key: NIGHT_SHIFT_RESIDENTIAL_DEMAND_TARGET
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: NIGHT_SHIFT_RESIDENTIAL_DEMAND_TARGET
+      - key: NIGHT_SHIFT_HOTEL_SELLER_TARGET
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: NIGHT_SHIFT_HOTEL_SELLER_TARGET
+      - key: NIGHT_SHIFT_HOTEL_BUYER_TARGET
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: NIGHT_SHIFT_HOTEL_BUYER_TARGET
+      - key: NIGHT_SHIFT_DAILY_AI_BUDGET_GBP
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: NIGHT_SHIFT_DAILY_AI_BUDGET_GBP
+      - key: NIGHT_SHIFT_MONTHLY_AI_BUDGET_GBP
+        fromService:
+          type: web
+          name: pq-command-web
+          envVarKey: NIGHT_SHIFT_MONTHLY_AI_BUDGET_GBP
       - key: PUBLIC_BUSINESS_DATA_API_URL
         fromService:
           type: web

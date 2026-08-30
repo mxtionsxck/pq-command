@@ -87,9 +87,12 @@ export default async function SystemHealthPage() {
 
         <Card title="AI routing" eyebrow="Primary and fallback aware">
           <div className="flex flex-wrap gap-2">
-            <Badge tone="info">primary: {appEnv.AI_PROVIDER ?? "unset"}</Badge>
+            <Badge tone="info">primary: {appEnv.AI_PRIMARY_PROVIDER ?? appEnv.AI_PROVIDER ?? "unset"}</Badge>
             <Badge tone="info">fallback: {appEnv.AI_FALLBACK_PROVIDER ?? "unset"}</Badge>
             <Badge tone="info">model: {appEnv.AI_MODEL ?? "provider-default"}</Badge>
+            <Badge tone="info">openai cheap: {appEnv.OPENAI_CHEAP_MODEL ?? "default"}</Badge>
+            <Badge tone="info">openai standard: {appEnv.OPENAI_STANDARD_MODEL ?? "default"}</Badge>
+            <Badge tone="info">openai reasoning: {appEnv.OPENAI_REASONING_MODEL ?? "default"}</Badge>
           </div>
           <p className="mt-3 text-sm pq-copy-muted">
             Configure Gemini and OpenAI keys to enable resilient multi-model routing for company-let lead intelligence.

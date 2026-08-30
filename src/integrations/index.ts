@@ -8,6 +8,7 @@ export interface IntegrationDescriptor {
 
 export function listIntegrations(env: AppEnv): IntegrationDescriptor[] {
   const integrations: IntegrationDescriptor[] = [];
+  const primaryProvider = env.AI_PRIMARY_PROVIDER ?? env.AI_PROVIDER;
 
   integrations.push({
     name: "database",
@@ -20,13 +21,13 @@ export function listIntegrations(env: AppEnv): IntegrationDescriptor[] {
   integrations.push({
     name: "ai.openai",
     status:
-      env.AI_PROVIDER === "openai" || env.AI_FALLBACK_PROVIDER === "openai"
+      primaryProvider === "openai" || env.AI_FALLBACK_PROVIDER === "openai"
         ? env.OPENAI_API_KEY
           ? "connected"
           : "configuration_required"
         : "not_enabled",
     detail:
-      env.AI_PROVIDER === "openai" || env.AI_FALLBACK_PROVIDER === "openai"
+      primaryProvider === "openai" || env.AI_FALLBACK_PROVIDER === "openai"
         ? env.OPENAI_API_KEY
           ? "OpenAI configured for active routing."
           : "Set OPENAI_API_KEY for OpenAI routing."
@@ -36,13 +37,13 @@ export function listIntegrations(env: AppEnv): IntegrationDescriptor[] {
   integrations.push({
     name: "ai.gemini",
     status:
-      env.AI_PROVIDER === "gemini" || env.AI_FALLBACK_PROVIDER === "gemini"
+      primaryProvider === "gemini" || env.AI_FALLBACK_PROVIDER === "gemini"
         ? env.GEMINI_API_KEY
           ? "connected"
           : "configuration_required"
         : "not_enabled",
     detail:
-      env.AI_PROVIDER === "gemini" || env.AI_FALLBACK_PROVIDER === "gemini"
+      primaryProvider === "gemini" || env.AI_FALLBACK_PROVIDER === "gemini"
         ? env.GEMINI_API_KEY
           ? "Gemini configured for active routing."
           : "Set GEMINI_API_KEY for Gemini routing."
