@@ -18,32 +18,40 @@ export async function getNavSummary(): Promise<NavSummary> {
     };
   }
 
-  const db = getDb();
+  try {
+    const db = getDb();
 
-  const [inboxOpenRows, hotRepliesRows] = await Promise.all([
-    db
-      .select({ count: count(conversations.id) })
-      .from(conversations)
-      .where(
-        and(
-          isNull(conversations.archivedAt),
-          inArray(conversations.status, ["open", "pending"]),
+    const [inboxOpenRows, hotRepliesRows] = await Promise.all([
+      db
+        .select({ count: count(conversations.id) })
+        .from(conversations)
+        .where(
+          and(
+            isNull(conversations.archivedAt),
+            inArray(conversations.status, ["open", "pending"]),
+          ),
         ),
-      ),
-    db
-      .select({ count: count(conversations.id) })
-      .from(conversations)
-      .where(
-        and(
-          isNull(conversations.archivedAt),
-          inArray(conversations.inboxCategory, ["HOT", "INTERESTED"]),
-          inArray(conversations.status, ["open", "pending"]),
+      db
+        .select({ count: count(conversations.id) })
+        .from(conversations)
+        .where(
+          and(
+            isNull(conversations.archivedAt),
+            inArray(conversations.inboxCategory, ["HOT", "INTERESTED"]),
+            inArray(conversations.status, ["open", "pending"]),
+          ),
         ),
-      ),
-  ]);
+    ]);
 
-  return {
-    inboxOpen: inboxOpenRows[0]?.count ?? 0,
-    hotReplies: hotRepliesRows[0]?.count ?? 0,
-  };
+    return {
+      inboxOpen: inboxOpenRows[0]?.count ?? 0,
+      hotReplies: hotRepliesRows[0]?.count ?? 0,
+    };
+  } catch (error) {
+    console.warn("[nav-summary] falling back to zero counters", error);
+    return {
+      inboxOpen: 0,
+      hotReplies: 0,
+    };
+  }
 }
