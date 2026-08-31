@@ -22,4 +22,4 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3000
 RUN npm run db:migrate
-CMD node server.js
+CMD ["node", "server.js"]
