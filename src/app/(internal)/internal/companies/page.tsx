@@ -50,18 +50,19 @@ export default async function CompaniesPage({
     );
   }
 
-  const params = await searchParams;
-  const search = readParam(params, "search") ?? "";
-  const service = createCompanyContactService();
-  const [companies, contacts, activity] = await Promise.all([
-    service.listCompanies(search),
-    service.listContacts({ search }),
-    service.listActivityTimeline(),
-  ]);
+  try {
+    const params = await searchParams;
+    const search = readParam(params, "search") ?? "";
+    const service = createCompanyContactService();
+    const [companies, contacts, activity] = await Promise.all([
+      service.listCompanies(search),
+      service.listContacts({ search }),
+      service.listActivityTimeline(),
+    ]);
 
-  return (
-    <AppShell>
-      <div className="space-y-8">
+    return (
+      <AppShell>
+        <div className="space-y-8">
         <PageHeader
           eyebrow="CRM"
           title="Companies and Contacts"
@@ -604,5 +605,15 @@ export default async function CompaniesPage({
         </Card>
       </div>
     </AppShell>
-  );
+    );
+  } catch {
+    return (
+      <AppShell>
+        <EmptyState
+          title="CRM temporarily unavailable"
+          description="The live CRM data layer is re-syncing or unavailable right now. Please try again shortly."
+        />
+      </AppShell>
+    );
+  }
 }

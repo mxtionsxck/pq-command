@@ -104,7 +104,9 @@ function ensureAccess(actor: AuditActor & { role?: "ADMIN" | "MANAGER" | "AGENT"
 function normalizeInventoryText() {
   return PQ_SUPPLIED_HOTEL_INVENTORY_TEXT.split("\n")
     .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+    .filter((line) => line.length > 0)
+    .filter((line) => !/REMOVAL REQUESTED|EXCLUDED FROM CURRENT PQ STOCK|DISTRESSED UK HOTEL PORTFOLIO/i.test(line))
+    .filter((line) => /^\d+\./.test(line));
 }
 
 function slugify(text: string) {

@@ -77,28 +77,32 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
     );
   }
 
-  const params = await searchParams;
-  const selectedCategory =
-    asCategory(readParam(params, "category")) ?? "UNCLEAR";
-  const selectedConversationId = readParam(params, "conversationId");
-  const search = readParam(params, "search");
-  const page = asPositiveInt(readParam(params, "page"), 1);
-  const pageSize = Math.min(50, asPositiveInt(readParam(params, "pageSize"), 25));
+  try {
+    const params = await searchParams;
+    const selectedCategory =
+      asCategory(readParam(params, "category")) ?? "UNCLEAR";
+    const selectedConversationId = readParam(params, "conversationId");
+    const search = readParam(params, "search");
+    const page = asPositiveInt(readParam(params, "page"), 1);
+    const pageSize = Math.min(50, asPositiveInt(readParam(params, "pageSize"), 25));
 
-  const service = createInboxService();
-  const conversations = await service.listConversations({
-    category: selectedCategory,
-    ...(search ? { search } : {}),
-    page,
-    pageSize,
-  });
-  const selectedConversation = selectedConversationId
-    ? await service.getThread(selectedConversationId)
-    : null;
+    const service = createInboxService();
+    const [conversationsResult, selectedConversationResult] = await Promise.allSettled([
+      service.listConversations({
+        category: selectedCategory,
+        ...(search ? { search } : {}),
+        page,
+        pageSize,
+      }),
+      selectedConversationId ? service.getThread(selectedConversationId) : Promise.resolve(null),
+    ]);
 
-  return (
-    <AppShell>
-      <div className="space-y-8">
+    const conversations = conversationsResult.status === "fulfilled" ? (Array.isArray(conversationsResult.value) ? conversationsResult.value : []) : [];
+    const selectedConversation = selectedConversationResult.status === "fulfilled" ? selectedConversationResult.value ?? null : null;
+
+    return (
+      <AppShell>
+        <div className="space-y-8">
         <PageHeader
           eyebrow="Inbox"
           title="Response Operations"
@@ -454,5 +458,15 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
         </section>
       </div>
     </AppShell>
-  );
+    );
+  } catch {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Inbox temporarily unavailable"
+          description="The live inbox data layer is re-syncing or unavailable right now. Please try again shortly."
+        />
+      </AppShell>
+    );
+  }
 }

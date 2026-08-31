@@ -66,22 +66,20 @@ export function AppShell({ children }: AppShellProps) {
 
   const primaryNav = [
     { href: "/internal/command-centre", label: "Command Centre" },
-    { href: "/internal/hotel-deals", label: "Hotel Engine" },
-    { href: "/internal/leads?view=qualified", label: "Qualified Leads" },
+    { href: "/internal/hotel-deals", label: "Hotels" },
+    { href: "/internal/company-lets", label: "Company Lets" },
     { href: "/internal/inbox", label: "Inbox" },
-    { href: "/internal/inbox?category=HOT", label: "Hot Replies" },
-    { href: "/internal/acquisition", label: "Acquisition" },
     { href: "/internal/deals", label: "Deals" },
-    { href: "/internal/viewings", label: "Viewings" },
+    { href: "/internal/research", label: "Research" },
+    { href: "/internal/settings", label: "Settings" },
   ] as const;
 
   const secondaryNav = [
-    { href: "/internal/stock-room", label: "Stock" },
-    { href: "/internal/demand-room", label: "Demand" },
+    { href: "/internal/hotel-deals/stock", label: "Hotel Stock Room" },
+    { href: "/internal/hotel-deals/qualified-leads", label: "Hotel Qualified" },
+    { href: "/internal/company-lets/qualified-leads", label: "Company Let Qualified" },
     { href: "/internal/outreach", label: "Outreach" },
-    { href: "/internal/rent-control", label: "Rent" },
-    { href: "/internal/tenancies", label: "Tenancies" },
-    { href: "/internal/documents", label: "Documents" },
+    { href: "/internal/viewings", label: "Viewings" },
     { href: "/internal/system-health", label: "System Health" },
   ] as const;
 
@@ -117,7 +115,7 @@ export function AppShell({ children }: AppShellProps) {
               <PqLogo compact />
             </Link>
             <p className="text-xs uppercase tracking-[0.22em] text-[color:var(--pq-text-subtle)]">
-              Institutional Operating Interface
+              PQ REAL ESTATE · PQ COMMAND
             </p>
           </header>
 

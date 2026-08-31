@@ -139,6 +139,7 @@ export function createLeadRoomService(
         companyName: result.leadRow.companyName,
         contactName,
         propertyTitle: result.leadRow.propertyTitle,
+        plan: null,
         signals: result.leadSignals.map((signal) => ({
           id: signal.id,
           type: signal.type,

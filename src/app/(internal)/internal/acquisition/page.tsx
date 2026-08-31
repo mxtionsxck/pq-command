@@ -37,31 +37,32 @@ export default async function AcquisitionPage() {
     );
   }
 
-  const orchestrator = createAiAcquisitionOrchestratorService();
-  const demandService = createDemandIntelligenceService();
+  try {
+    const orchestrator = createAiAcquisitionOrchestratorService();
+    const demandService = createDemandIntelligenceService();
 
-  const [missions, messages, heatmap, suggestions, northStar] = await Promise.all([
-    orchestrator.listMissions(),
-    orchestrator.listAgentMessages(),
-    demandService.listHeatmap(),
-    demandService.buildShortageMissionSuggestions(),
-    orchestrator.getCommercialNorthStarSnapshot(),
-  ]);
+    const [missions, messages, heatmap, suggestions, northStar] = await Promise.all([
+      orchestrator.listMissions(),
+      orchestrator.listAgentMessages(),
+      demandService.listHeatmap(),
+      demandService.buildShortageMissionSuggestions(),
+      orchestrator.getCommercialNorthStarSnapshot(),
+    ]);
 
-  const latestRunByMission = new Map(
-    (
-      await Promise.all(
-        missions.map(async (mission) => {
-          const runs = await orchestrator.listMissionRuns(mission.id);
-          return [mission.id, runs[0]] as const;
-        }),
-      )
-    ).map(([missionId, latestRun]) => [missionId, latestRun]),
-  );
+    const latestRunByMission = new Map(
+      (
+        await Promise.all(
+          missions.map(async (mission) => {
+            const runs = await orchestrator.listMissionRuns(mission.id);
+            return [mission.id, runs[0]] as const;
+          }),
+        )
+      ).map(([missionId, latestRun]) => [missionId, latestRun]),
+    );
 
-  return (
-    <AppShell>
-      <div className="space-y-8">
+    return (
+      <AppShell>
+        <div className="space-y-8">
         <PageHeader
           eyebrow="AI Acquisition Engine"
           title="Objective-driven acquisition"
@@ -237,5 +238,15 @@ export default async function AcquisitionPage() {
         </Card>
       </div>
     </AppShell>
-  );
+    );
+  } catch {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Acquisition engine temporarily unavailable"
+          description="The live acquisition data layer is re-syncing or unavailable right now. Please try again shortly."
+        />
+      </AppShell>
+    );
+  }
 }

@@ -55,19 +55,20 @@ export default async function DemandRoomPage({
     );
   }
 
-  const params = await searchParams;
-  const search = readParam(params, "search");
-  const requirementId = readParam(params, "requirementId");
+  try {
+    const params = await searchParams;
+    const search = readParam(params, "search");
+    const requirementId = readParam(params, "requirementId");
 
-  const service = createDemandRoomService();
-  const requirements = await service.listRequirements(search);
-  const workspace = requirementId
-    ? await service.getRequirementWorkspace(requirementId)
-    : null;
+    const service = createDemandRoomService();
+    const requirements = await service.listRequirements(search);
+    const workspace = requirementId
+      ? await service.getRequirementWorkspace(requirementId)
+      : null;
 
-  return (
-    <AppShell>
-      <div className="space-y-8">
+    return (
+      <AppShell>
+        <div className="space-y-8">
         <PageHeader
           eyebrow="Demand"
           title="Direct Demand Room"
@@ -295,5 +296,15 @@ export default async function DemandRoomPage({
         ) : null}
       </div>
     </AppShell>
-  );
+    );
+  } catch {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Demand Room temporarily unavailable"
+          description="The demand database is re-syncing or unavailable right now. Please try again shortly."
+        />
+      </AppShell>
+    );
+  }
 }

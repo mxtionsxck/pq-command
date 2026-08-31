@@ -29,19 +29,6 @@ function formatMoneyCents(cents: number | null) {
 export default async function HotelDealsPage() {
   await requireCurrentUserPermission("sendOutreach");
 
-  const service = createHotelDealIntelligenceService();
-  const snapshot = await service.getPipelineSnapshot();
-  const inventory = await service.listLiveStockUniverse(30);
-  const directBuyers = await service.listDirectBuyers(20);
-  const matches = await service.generateMatches(12);
-
-  const preview = matches[0]
-    ? service.buildOutreachPreview({
-        stock: matches[0].stock,
-        buyer: matches[0].buyer,
-      })
-    : null;
-
   if (!getDatabaseConfig(appEnv).configured) {
     return (
       <AppShell>
@@ -53,22 +40,60 @@ export default async function HotelDealsPage() {
     );
   }
 
-  return (
-    <AppShell>
-      <div className="space-y-8">
+  try {
+    const service = createHotelDealIntelligenceService();
+    const [snapshotResult, inventoryResult, directBuyersResult, matchesResult] = await Promise.allSettled([
+      service.getPipelineSnapshot(),
+      service.listLiveStockUniverse(30),
+      service.listDirectBuyers(20),
+      service.generateMatches(12),
+    ]);
+
+    const snapshot = snapshotResult.status === "fulfilled" ? snapshotResult.value : null;
+    const inventory = inventoryResult.status === "fulfilled" ? (Array.isArray(inventoryResult.value) ? inventoryResult.value : []) : [];
+    const directBuyers = directBuyersResult.status === "fulfilled" ? (Array.isArray(directBuyersResult.value) ? directBuyersResult.value : []) : [];
+    const matches = matchesResult.status === "fulfilled" ? (Array.isArray(matchesResult.value) ? matchesResult.value : []) : [];
+
+    const preview = matches[0]
+      ? service.buildOutreachPreview({
+          stock: matches[0].stock,
+          buyer: matches[0].buyer,
+        })
+      : null;
+
+    const safeSnapshot = snapshot ?? {
+      hotDirectStock: 0,
+      hotDirectBuyers: 0,
+      readyToReachOut: 0,
+      respondedHumanActionRequired: 0,
+      dealsInProgress: 0,
+      followUps: 0,
+    };
+
+    return (
+      <AppShell>
+        <div className="space-y-8">
         <PageHeader
           eyebrow="Hotel Intelligence"
           title="Direct Hotel Deal Engine"
-          description="Find direct hotel stock, verify mandate chain, match direct decision-makers, and trigger human-led outreach handoff."
+          description="DIRECT LEADS ONLY • NO AGENTS • NO MIDDLE MEN. Find direct hotel stock, verify mandate chain, match direct decision-makers, and trigger human-led outreach handoff."
         />
 
+        <Card title="Direct company-let investor criteria" eyebrow="Residential demand must remain direct">
+          <div className="space-y-2 text-sm text-white">
+            <p>Company-let investor focus: multiple unit 15-60+ units, blocks and houses 3-10+ bedrooms.</p>
+            <p>Direct investor, direct landlord, direct operating company only. No agents. No middle men. No introducers as primary leads.</p>
+            <p className="text-xs pq-copy-muted">AI lead generation starts on verified direct supply and demand signals only.</p>
+          </div>
+        </Card>
+
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <StatCard label="Hot direct stock" value={String(snapshot.hotDirectStock)} detail="DIRECT owner or mandate-first" />
-          <StatCard label="Hot direct buyers" value={String(snapshot.hotDirectBuyers)} detail="Direct acquisition authority only" />
-          <StatCard label="Ready to reach out" value={String(snapshot.readyToReachOut)} detail="Verified and outreach-eligible" />
-          <StatCard label="Responded" value={String(snapshot.respondedHumanActionRequired)} detail="Human action required" />
-          <StatCard label="Follow-ups queued" value={String(snapshot.followUps)} />
-          <StatCard label="Deals in progress" value={String(snapshot.dealsInProgress)} />
+          <StatCard label="Hot direct stock" value={String(safeSnapshot.hotDirectStock ?? 0)} detail="DIRECT owner or mandate-first" />
+          <StatCard label="Hot direct buyers" value={String(safeSnapshot.hotDirectBuyers ?? 0)} detail="Direct acquisition authority only" />
+          <StatCard label="Ready to reach out" value={String(safeSnapshot.readyToReachOut ?? 0)} detail="Verified and outreach-eligible" />
+          <StatCard label="Responded" value={String(safeSnapshot.respondedHumanActionRequired ?? 0)} detail="Human action required" />
+          <StatCard label="Follow-ups queued" value={String(safeSnapshot.followUps ?? 0)} />
+          <StatCard label="Deals in progress" value={String(safeSnapshot.dealsInProgress ?? 0)} />
         </section>
 
         <Card title="Priority actions" eyebrow="Most important first">
@@ -79,9 +104,13 @@ export default async function HotelDealsPage() {
             <form action={importPqHotelInventoryAction}>
               <Button type="submit">Load or refresh PQ supplied hotel inventory</Button>
             </form>
+            <Link className="text-sm text-[color:var(--pq-accent-strong)]" href="/internal/hotel-deals/stock">
+              Open hotel stock board
+            </Link>
             <Link className="text-sm text-[color:var(--pq-accent-strong)]" href="/internal/inbox">
               Open responded inbox for handoff
             </Link>
+            <p className="text-xs pq-copy-muted">AI lead generation starts on direct hotel supply and demand only. No agents. No middle men.</p>
             <p className="text-xs pq-copy-muted">No agents as primary leads. Intermediaries remain outside direct pipeline until mandate evidence is verified.</p>
             <p className="text-xs pq-copy-muted">Every claim must map to evidence before outreach can be trusted.</p>
           </div>
@@ -198,5 +227,15 @@ export default async function HotelDealsPage() {
         ) : null}
       </div>
     </AppShell>
-  );
+    );
+  } catch {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Hotel Intelligence Engine temporarily unavailable"
+          description="The live hotel data layer is re-syncing or unavailable right now. Please try again shortly."
+        />
+      </AppShell>
+    );
+  }
 }

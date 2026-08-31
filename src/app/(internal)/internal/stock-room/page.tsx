@@ -444,21 +444,34 @@ function PropertyCard({
 export default async function StockRoomPage({
   searchParams,
 }: StockRoomPageProps) {
-  const params = await searchParams;
-  const propertyService = createPropertyService();
-  const filters = parseFilters(params);
-  const page = asPositiveInt(readParam(params, "page"), 1);
-  const pageSize = Math.min(48, asPositiveInt(readParam(params, "pageSize"), 24));
-  const properties = await propertyService.listStockRoom(filters, {
-    limit: pageSize,
-    offset: (page - 1) * pageSize,
-  });
-  const view = readParam(params, "view") === "list" ? "list" : "grid";
   const databaseConfigured = getDatabaseConfig(appEnv).configured;
 
-  return (
-    <AppShell>
-      <div className="space-y-8">
+  if (!databaseConfigured) {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Stock Room unavailable"
+          description="Configure DATABASE_URL to browse the live company-let property inventory."
+        />
+      </AppShell>
+    );
+  }
+
+  try {
+    const params = await searchParams;
+    const propertyService = createPropertyService();
+    const filters = parseFilters(params);
+    const page = asPositiveInt(readParam(params, "page"), 1);
+    const pageSize = Math.min(48, asPositiveInt(readParam(params, "pageSize"), 24));
+    const properties = await propertyService.listStockRoom(filters, {
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+    const view = readParam(params, "view") === "list" ? "list" : "grid";
+
+    return (
+      <AppShell>
+        <div className="space-y-8">
         <PageHeader
           eyebrow="Stock Room"
           title="Property inventory"
@@ -850,5 +863,15 @@ export default async function StockRoomPage({
         </Card>
       </div>
     </AppShell>
-  );
+    );
+  } catch {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Stock Room temporarily unavailable"
+          description="The live stock database is re-syncing or unavailable right now. Please try again shortly."
+        />
+      </AppShell>
+    );
+  }
 }

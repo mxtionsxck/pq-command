@@ -23,46 +23,14 @@ export default async function InternalHomePage() {
     <AppShell>
       <div className="space-y-8">
         <PageHeader
-          eyebrow="Monday Morning"
-          title="Team Operating Hub"
-          description="Start with the most important screens first: qualified leads, inbox replies, and command centre priorities."
+          eyebrow="Daily operations"
+          title="PQ COMMAND"
+          description="The operating centre for hotels, company lets, inbox activity, deals, and research."
         />
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Card
-            eyebrow="Step 1"
-            footer={
-              <Link
-                className="text-sm text-[color:var(--pq-accent-strong)]"
-                href="/internal/leads?view=qualified"
-              >
-                Open qualified leads
-              </Link>
-            }
-            title="Qualified leads"
-          >
-            <p className="pq-copy-muted text-sm leading-6">
-              Review ready-to-contact opportunities first.
-            </p>
-          </Card>
-          <Card
-            eyebrow="Step 2"
-            footer={
-              <Link
-                className="text-sm text-[color:var(--pq-accent-strong)]"
-                href="/internal/inbox"
-              >
-                Open inbox
-              </Link>
-            }
-            title="Replies and messages"
-          >
-            <p className="pq-copy-muted text-sm leading-6">
-              Handle hot conversations and assign follow-ups.
-            </p>
-          </Card>
-          <Card
-            eyebrow="Step 3"
+            eyebrow="Core vertical"
             footer={
               <Link
                 className="text-sm text-[color:var(--pq-accent-strong)]"
@@ -71,26 +39,58 @@ export default async function InternalHomePage() {
                 Open command centre
               </Link>
             }
-            title="Daily priorities"
+            title="Command Centre"
           >
             <p className="pq-copy-muted text-sm leading-6">
-              Track shortages, queue depth, and top actions.
+              Daily priorities, metrics, live deal health, and operational focus.
             </p>
           </Card>
           <Card
-            eyebrow="Step 4"
+            eyebrow="Core vertical"
             footer={
               <Link
                 className="text-sm text-[color:var(--pq-accent-strong)]"
-                href="/internal/acquisition"
+                href="/internal/hotel-deals"
               >
-                Open acquisition engine
+                Open hotels
               </Link>
             }
-            title="Lead generation"
+            title="Hotels"
           >
             <p className="pq-copy-muted text-sm leading-6">
-              Check mission progress and outreach-ready pipeline.
+              Hotel stock, direct sellers, direct buyers, matching, and outreach readiness.
+            </p>
+          </Card>
+          <Card
+            eyebrow="Core vertical"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/company-lets"
+              >
+                Open company lets
+              </Link>
+            }
+            title="Company Lets"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              Residential stock, landlords, operators, requirements, and direct matches.
+            </p>
+          </Card>
+          <Card
+            eyebrow="Shared operations"
+            footer={
+              <Link
+                className="text-sm text-[color:var(--pq-accent-strong)]"
+                href="/internal/inbox"
+              >
+                Open inbox
+              </Link>
+            }
+            title="Inbox"
+          >
+            <p className="pq-copy-muted text-sm leading-6">
+              Conversations, responses, human action, and follow-up queues.
             </p>
           </Card>
         </section>
@@ -105,7 +105,7 @@ export default async function InternalHomePage() {
                 </Button>
               </form>
             }
-            title={user.name ?? "Team user"}
+            title={"PQ Real Estate Team"}
           >
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3">
@@ -114,12 +114,12 @@ export default async function InternalHomePage() {
               </div>
               <dl className="grid gap-3 text-sm sm:grid-cols-2">
                 <div>
-                  <dt className="pq-copy-subtle">Email</dt>
-                  <dd className="mt-1 text-white">{user.email}</dd>
+                  <dt className="pq-copy-subtle">Team contact</dt>
+                  <dd className="mt-1 text-white">info@pinnaclequarters.co.uk</dd>
                 </div>
                 <div>
-                  <dt className="pq-copy-subtle">User ID</dt>
-                  <dd className="mt-1 break-all text-white">{user.id}</dd>
+                  <dt className="pq-copy-subtle">Internal account</dt>
+                  <dd className="mt-1 break-all text-white">PQ COMMAND admin</dd>
                 </div>
               </dl>
             </div>
@@ -128,14 +128,14 @@ export default async function InternalHomePage() {
           <Card eyebrow="Quick links" title="Common team actions">
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <span className="pq-copy-muted">Lead room</span>
-                <Link className="text-[color:var(--pq-accent-strong)]" href="/internal/leads">
+                <span className="pq-copy-muted">Hotels</span>
+                <Link className="text-[color:var(--pq-accent-strong)]" href="/internal/hotel-deals">
                   Open
                 </Link>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="pq-copy-muted">Campaign builder</span>
-                <Link className="text-[color:var(--pq-accent-strong)]" href="/internal/outreach">
+                <span className="pq-copy-muted">Company Lets</span>
+                <Link className="text-[color:var(--pq-accent-strong)]" href="/internal/company-lets">
                   Open
                 </Link>
               </div>

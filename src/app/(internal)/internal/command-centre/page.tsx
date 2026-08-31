@@ -48,7 +48,7 @@ export default async function CommandCentrePage() {
     <AppShell>
       <div className="space-y-8">
         <PageHeader
-          eyebrow="Monday Morning"
+          eyebrow="Daily operations"
           title="PQ Command Centre"
           description="What happened, what matters now, and what your team should do first."
         />

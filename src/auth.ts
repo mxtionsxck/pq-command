@@ -91,9 +91,9 @@ const providers = [
             const normalized = normalizeUsername(expectedUsername).toLowerCase();
 
             return {
-              id: `local-admin:${normalized}`,
-              name: "PQ Private Admin",
-              email: `${normalized}@local.pq`,
+              id: `pq-team-admin`,
+              name: "PQ Real Estate Team",
+              email: "info@pinnaclequarters.co.uk",
               role: "ADMIN" as const,
             };
           },

@@ -176,6 +176,55 @@ async function main() {
     `);
 
     await sql.unsafe(`
+      ALTER TABLE conversations
+        ADD COLUMN IF NOT EXISTS archived_at timestamp with time zone,
+        ADD COLUMN IF NOT EXISTS lead_id text,
+        ADD COLUMN IF NOT EXISTS contact_id text,
+        ADD COLUMN IF NOT EXISTS owner_user_id text,
+        ADD COLUMN IF NOT EXISTS channel outreach_channel,
+        ADD COLUMN IF NOT EXISTS inbox_category inbox_category,
+        ADD COLUMN IF NOT EXISTS snoozed_until timestamp with time zone,
+        ADD COLUMN IF NOT EXISTS ai_summary text,
+        ADD COLUMN IF NOT EXISTS subject varchar(200),
+        ADD COLUMN IF NOT EXISTS last_message_at timestamp with time zone;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'conversations'
+            AND column_name = 'status'
+        ) THEN
+          ALTER TABLE conversations
+            ALTER COLUMN status TYPE conversation_status
+            USING status::text::conversation_status;
+        END IF;
+      END $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'conversations'
+            AND column_name = 'status'
+            AND is_nullable = 'YES'
+        ) THEN
+          ALTER TABLE conversations
+            ALTER COLUMN status SET NOT NULL,
+            ALTER COLUMN status SET DEFAULT 'open';
+        END IF;
+      END $$;
+    `);
+
+    await sql.unsafe(`
       CREATE TABLE IF NOT EXISTS messages (
         id text PRIMARY KEY NOT NULL,
         created_at timestamp with time zone DEFAULT now() NOT NULL,

@@ -98,20 +98,20 @@ export function createCommandCentreService(
 
       const currentTime = now();
       const [
-        qualifiedSupply,
-        directDemand,
-        supplyGap,
-        hotReplies,
-        viewingsToday,
-        activeDeals,
-        stalledItems,
-        overnightIntelligence,
-        queueDepth,
-        topAcquisitionTargets,
-        nextActions,
-        workerHealth,
-        hotelSnapshot,
-      ] = await Promise.all([
+        qualifiedSupplyResult,
+        directDemandResult,
+        supplyGapResult,
+        hotRepliesResult,
+        viewingsTodayResult,
+        activeDealsResult,
+        stalledItemsResult,
+        overnightIntelligenceResult,
+        queueDepthResult,
+        topAcquisitionTargetsResult,
+        nextActionsResult,
+        workerHealthResult,
+        hotelSnapshotResult,
+      ] = await Promise.allSettled([
         repository.countQualifiedSupply(),
         repository.countDirectDemand(),
         repository.sumSupplyGap(),
@@ -127,6 +127,34 @@ export function createCommandCentreService(
         hotelService.getPipelineSnapshot(),
       ]);
 
+      const qualifiedSupply = qualifiedSupplyResult.status === "fulfilled" ? qualifiedSupplyResult.value : 0;
+      const directDemand = directDemandResult.status === "fulfilled" ? directDemandResult.value : 0;
+      const supplyGap = supplyGapResult.status === "fulfilled" ? supplyGapResult.value : 0;
+      const hotReplies = hotRepliesResult.status === "fulfilled" ? hotRepliesResult.value : 0;
+      const viewingsToday = viewingsTodayResult.status === "fulfilled" ? viewingsTodayResult.value : 0;
+      const activeDeals = activeDealsResult.status === "fulfilled" ? activeDealsResult.value : 0;
+      const stalledItems = stalledItemsResult.status === "fulfilled" ? stalledItemsResult.value : 0;
+      const overnightIntelligence = overnightIntelligenceResult.status === "fulfilled" ? overnightIntelligenceResult.value : 0;
+      const queueDepth = queueDepthResult.status === "fulfilled" ? queueDepthResult.value : 0;
+      const topAcquisitionTargets = topAcquisitionTargetsResult.status === "fulfilled" ? topAcquisitionTargetsResult.value ?? [] : [];
+      const nextActions = nextActionsResult.status === "fulfilled" ? nextActionsResult.value ?? [] : [];
+      const workerHealth = workerHealthResult.status === "fulfilled" ? workerHealthResult.value ?? [] : [];
+      const hotelSnapshot = hotelSnapshotResult.status === "fulfilled"
+        ? hotelSnapshotResult.value ?? {
+            hotDirectStock: 0,
+            hotDirectBuyers: 0,
+            readyToReachOut: 0,
+            respondedHumanActionRequired: 0,
+            dealsInProgress: 0,
+          }
+        : {
+            hotDirectStock: 0,
+            hotDirectBuyers: 0,
+            readyToReachOut: 0,
+            respondedHumanActionRequired: 0,
+            dealsInProgress: 0,
+          };
+
       return {
         qualifiedSupply,
         directDemand,
@@ -141,11 +169,11 @@ export function createCommandCentreService(
         nextActions,
         workerHealth,
         hotel: {
-          hotDirectStock: hotelSnapshot.hotDirectStock,
-          hotDirectBuyers: hotelSnapshot.hotDirectBuyers,
-          readyToReachOut: hotelSnapshot.readyToReachOut,
-          respondedHumanActionRequired: hotelSnapshot.respondedHumanActionRequired,
-          dealsInProgress: hotelSnapshot.dealsInProgress,
+          hotDirectStock: hotelSnapshot.hotDirectStock ?? 0,
+          hotDirectBuyers: hotelSnapshot.hotDirectBuyers ?? 0,
+          readyToReachOut: hotelSnapshot.readyToReachOut ?? 0,
+          respondedHumanActionRequired: hotelSnapshot.respondedHumanActionRequired ?? 0,
+          dealsInProgress: hotelSnapshot.dealsInProgress ?? 0,
         },
       };
     },

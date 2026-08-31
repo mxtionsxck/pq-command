@@ -108,13 +108,14 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           <PqLogo />
 
           <div className="space-y-2 border-b border-[color:rgba(215,192,140,0.12)] pb-5">
-            <p className="pq-kicker">Secure Access</p>
+            <p className="pq-kicker">PQ Real Estate</p>
             <h1 className="text-4xl font-semibold tracking-[-0.03em] text-white">
               Sign In
             </h1>
             <p className="pq-copy-muted text-sm leading-6 sm:text-base">
-              Use your setup credentials to unlock all pages.
+              Use your team credentials to access the PQ COMMAND operating system.
             </p>
+            <p className="text-sm text-[color:var(--pq-accent-strong)]">Support: info@pinnaclequarters.co.uk</p>
           </div>
 
           {!isConfigured ? (

@@ -1,126 +1,132 @@
 export const PQ_SUPPLIED_HOTEL_INVENTORY_TEXT = `
-Event Hotel Pyramide/Vosendorf - Vienna, Austria - 461 keys - EUR 110m.
-Radisson Red Vienna - Vienna, Austria - 179 keys - EUR 82.5m.
-Zalatahaus Prague - Prague, Czech Republic - 162 keys - EUR 150m.
-JW Marriott Cannes - Cannes, France - 261 keys - EUR 475m.
-Palm Beach / Development - Cannes, France - Vacant building - EUR 36m.
-Grand Hotel Cap Feret - Cap Feret, France - 74 keys - On LOI.
-AC Hotel Juan des Pins - Juan des Pins, France - 221 keys - EUR 75m.
-Bowmann Paris - Paris, France - 53 keys - EUR 99m.
-Development Paris - Paris, France - 21,730 sqm / 6 floors + 3 basements - EUR 650m.
-Hotel California Paris Champs Elysees - Paris, France - 145 keys - EUR 400m.
-Hotel du Louvre - Paris, France - 164 keys - EUR 405m.
-Hyatt Regency Paris - Paris, France - 995 keys - EUR 600m.
-Land Paris - Paris, France - 7,000 sqm - EUR 75m.
-Le Clef, Champs Elysee - Paris, France - 63 keys - EUR 130m.
-Meridien Etoile Paris - Paris, France - 1,025 keys - EUR 700m.
-Napolean Hotel Paris - Paris, France - 96 keys - EUR 210m.
-Shangri-La Paris - Paris, France - 100 keys - EUR 430m.
-Sofitel Arc de Triomphe - Paris, France - 124 keys - EUR 200m.
-Courtyard by Marriott Dusseldorf - Dusseldorf, Germany - 221 keys - EUR 35m.
-Intercontinental (Vacant Possession) Frankfurt - Frankfurt, Germany - 463 keys - EUR 90m.
-Royal Olympic Athens - Athens, Greece - 260 keys - EUR 105m.
-Divani Group - Athens, Larissa, Corfu, Meteora, Greece - Group - EUR 785m.
-SW Mykonos (all suites) - Mykonos, Greece - 40 keys - EUR 39m.
-Project Alexandra - Santorini, Greece - Luxury development - EUR 250k intro fee.
-Aria hotel and Residences Budapest - Budapest, Hungary - 53 + 25 residences to develop - TBA.
-Development Opportunity Budapest - Budapest, Hungary - Development - EUR 80m.
-Habtoor Palace (was Ritz Carlton) - Budapest, Hungary - 200 keys - TBA.
-Parisi Hotel Budapest - Budapest, Hungary - EUR 120m.
-On request - Florence, Italy - 100 keys - EUR 20m.
-Edition Hotel Lake Como - Lake Como, Italy - 148 keys - EUR 200m.
-Land Milan - Milan, Italy - Land / 20,000 sqm - EUR 35m.
-Grand Hotel Plaza - Rome, Italy - 200 keys - EUR 350m.
-Hotel Griffe - Rome, Italy - 138 keys - EUR 79m.
-Hotel Marcella Royal - Rome, Italy - 90 keys - EUR 75m.
-Hotel Tor Vergata - Rome, Italy - 210 keys - EUR 47m.
-Occidental Aran Park - Rome, Italy - 325 keys - EUR 50m.
-Grand Hotel Londra (Italian Riveria) - San Remo, Italy - 130 keys - EUR 18.5m.
-Ausnia Hungaria Palace - Venice, Italy - 60 keys - EUR 48m.
-Miramar Monaco - Monaco - 14 keys - EUR 20m.
-The Metropole Monaco - Monaco - 125 keys - EUR 3bn.
-Intercontinental Lisbon - Lisbon, Portugal - 315 keys - price TBA.
-Ritz Four Seasons Lisbon - Lisbon, Portugal - 280 keys - price TBA.
-Aliados Hotel Porto - Porto, Portugal - 97 keys - EUR 85m.
-Crowne Plaza Porto - Porto, Portugal - 232 keys - EUR 360m.
-Development Site Barcelona - Barcelona, Spain - Development site - EUR 42m.
-Edition Hotel Barcelona - Barcelona, Spain - 100 keys - EUR 100m.
-Hotel Leonor - Barcelona, Spain - price EUR 330m; likely ~EUR 315m.
-Hotel Vila Celella - Barcelona, Spain - 170 keys - EUR 4m.
-Four Seasons Madrid - Madrid, Spain - 200 keys - EUR 950m.
-Hard Rock Hotel Madrid - Madrid, Spain - 161 keys - price TBA.
-Hotel Puerta America - Madrid, Spain - 315 keys - EUR 123m.
-Mandarin Oriental Madrid - Madrid, Spain - 167 keys - EUR 695m.
-BlueBay Banus - Marbella, Spain - 315 keys - EUR 70m.
-Hard Rock Hotel Marbella - Marbella, Spain - 384 keys - EUR 114m.
-Hotel Monteros - Marbella, Spain - 195 keys - EUR 120m.
-Development Site Valencia and Spanish Islands - Valencia and Spanish Islands, Spain - 427 rooms + 413 apartments - EUR 180m / EUR 200m without operator.
-Art Basel - Basel, Switzerland - 239 keys - CHF 102.5m.
-Schweizerhof Bern - Bern, Switzerland - 99 keys - CHF 350m.
-Crowne Plaza Geneva - Geneva, Switzerland - 333 keys - price TBA.
-Four Seasons, Bergers Geneva - Geneva, Switzerland - 115 keys - EUR 510m.
-Intercontinental Geneva - Geneva, Switzerland - 366 keys - price TBA.
-President Wilson Geneva - Geneva, Switzerland - 240 keys - CHF 450m.
-Royal Savoy Lusanne - Lausanne, Switzerland - 196 keys - CHF 250m.
-Crowne Plaza Zurich - Zurich, Switzerland - 365 keys - CHF 530m.
-Five Hotel Zurich - Zurich, Switzerland - 149 keys - CHF 130m.
-Bayswater Garden Hotel - Bayswater, UK - 170 keys - GBP 65m - Operating - Nine interconnected buildings.
-Bayswater Hotel - Bayswater, UK - 53 keys - GBP 17m - Under Offer - Previous planning consent.
-Grand Royale Hyde Park - Bayswater, London, UK - 189 keys - GBP 80m / ~GBP 85m - Managed - planning to larger rooms and more luxurious.
-The Ned - City, UK - 250 keys - GBP 500m - Managed - Landmark asset.
-NoMad Covent Garden - Covent Garden, UK - GBP 170m - GBP 160m rejected.
-Earl's Court Boutique Hotel - Earl's Court, UK - 60 keys - GBP 22.5m - Operating - EBITDA GBP 1.4m.
-Sanderson Hotel - Fitzrovia, UK - 150 keys - GBP 160m-GBP 170m - Managed - Lifestyle hotel - likely ~GBP 155m.
-Edition Hotel - Fitzrovia, London, UK - 180 keys - GBP 180m - Flag Free - likely GBP 180m-GBP 220m.
-Earl's Court Hotel - Gloucester Road, UK - 150+ keys - GBP 45m - Operating - Large repositioning opportunity.
-Heathrow Hotel - Heathrow / Great Western Road, UK - 127 keys - GBP 20m - Operating - Conference hotel.
-Rosewood Holborn - Holborn, UK - 308 keys - GBP 350m-GBP 400m - Managed - Principals only.
-Hilton Kensington - Kensington, UK - GBP 220m-GBP 290m - likely ~GBP 270m.
-Kensington Hotel - Kensington, UK - 39 keys - GBP 26m - Operating - Restaurant and workspace.
-1 Palace Gate Apartments - Kensington, London, UK - 70 units - GBP 400m - Unmanaged - Administration Sale - Branded residence opportunity - approximately GBP 25m capex required.
-Royal Garden Hotel - Kensington, UK - 395 keys - GBP 400m-GBP 485m - Owner Managed - International branding opportunity - Owner may negotiate.
-Knightsbridge Boutique Hotel - Knightsbridge, UK - 30 keys - GBP 28m - Operating - Adjacent to Harrods.
-Corus Hyde Park - Lancaster Gate, UK - 389 keys - Refurbishment - On hold - refurbishment completes Sept 2026.
-The Londoner - Leicester Square, UK - 350 keys - GBP 750m - Owner Managed - Mixed-use destination - POA.
-130 Queens Gate - London, UK - 50 keys - GBP 115m.
-Ambassadors Hotel - London, UK - 150 keys - GBP 65m.
-Biltmore London - London, UK - 307 keys - GBP 450m.
-Hill Street - London, UK - 65 keys - GBP 115m.
-Kinnaird House - 1 Pall Mall - London, UK - Development opportunity - GBP 115m.
-Knightsbridge development - London, UK - 154 keys - GBP 165m.
-Mandarin Oriental, Hanover Sq - London, UK - 50 keys - GBP 350m.
-Rosewood Hotel London - London, UK - 308 keys - GBP 350m.
-Savile Row development - London, UK - 80 keys - GBP 105m.
-Signature J Hotel: Lancaster Gate - London, UK - 43 keys - GBP 19m.
-Signature J Hotel: Park Avenue - London, UK - 44 keys - GBP 19m.
-The Bvlgari London - London, UK - 85 keys - GBP 400m.
-The Lanesborough - London, UK - 100 keys - GBP 425m.
-The Shepherd - London, UK - 82 keys - GBP 160m - Unmanaged - Boutique - POA.
-The Stratford Hotel - London, UK - 145 keys - GBP 85m.
-The Elizabeth Hotel - Lancaster Gate, London, UK - 52 keys - GBP 30m-GBP 35m.
-voco Marylebone - Marylebone, London, UK - 92 keys - GBP 52m - IHG - Modern hotel - likely GBP 50m-GBP 52m.
-Mandarin Oriental Hanover Square - Mayfair, UK - 50 keys - GBP 350m-GBP 400m - Managed - Includes residences - likely GBP 375m-GBP 400m.
-Washington Mayfair - Mayfair, UK - GBP 350m - likely ~GBP 330m.
-Marriott Park Lane - Mayfair, London, UK - 152 keys - GBP 235m - vendor accepts GBP 200m - Upgrade opportunity - likely ~GBP 200m.
-The Westbury - Mayfair, UK - 244 keys - GBP 800m / GBP 1.5bn - Managed - Includes Burberry store and apartments - POA.
-Norfolk Square Hotel - Paddington, UK - 55 keys - GBP 18m - Operating - Turnkey.
-Paddington Hotel A - Paddington, UK - 120 keys - GBP 40m - Operating - Restaurant, bar, parking.
-Paddington Hotel B - Paddington, UK - 230 keys - GBP 70m - Operating - Fitness centre.
-Courthouse Hotel Shoreditch - Shoreditch, UK - 128 keys - GBP 200m - Vacant Possession - Former courthouse - POA.
-Courthouse Hotel Soho - Soho, UK - 116 keys - GBP 200m - Vacant Possession - Grade II listed - POA.
-South Kensington Luxury Hotel - South Kensington, UK - 24 suites - GBP 25m - Operating - Buyer fee - Spa, gym, sauna.
-50 St James's Street - St James's, UK - GBP 110m - Direct - Off Market - Historic building.
-Distressed UK Hotel Portfolio - Various UK - 17 hotels / 2,572 keys - GBP 400m - Off Market - IHG-managed - SPV sale - leasehold - FY24 occupancy 79%, ADR GBP 101.50, RevPAR GBP 80.85, Revenue GBP 144m, GOI GBP 78m.
-1 Palace Street - Westminster, UK - GBP 425m - POA.
-The Guardsman - Westminster, UK - 53 rooms + 6 residences - GBP 65m - Direct - can be flag-free - likely GBP 50m-GBP 65m.
-Great Scotland Yard - Westminster, London, UK - 153 keys - GBP 180m guide - vendor accepts GBP 150m - Hyatt-managed - likely ~GBP 150m.
-Project Lukas - Bahamas - Luxury development - USD 350k intro fee.
-Redevelopment Deytona/Miami - Miami, USA - 323 keys - USD 45m.
-W Hotel Brickell - Miami, USA - 146 keys - USD 65m.
-Cassa Hotel New York - New York, USA - 166 keys - USD 70m.
-Hotel Hendricks - New York, USA - 176 keys - USD 100m.
-NYMA Hotel - New York, USA - 170 keys - USD 95m.
-Refinery Hotel - New York, USA - 197 keys - USD 240m.
-Royalton New York - New York, USA - 168 keys - USD 55m.
-The Hotel at Fifth Avenue - New York, USA - 182 keys - USD 90m.
+PQ EXISTING HOTEL STOCK — VERIFICATION REQUIRED
+PQ SUPPLIED EXISTING STOCK
+VERIFICATION REQUIRED
+
+REMOVAL REQUESTED — EXCLUDED FROM CURRENT PQ STOCK
+Legacy UK off-market portfolio - Various UK - 17 hotels / 2,572 keys - GBP 400m - Off Market - IHG-managed - SPV sale - leasehold - FY24 occupancy 79%, ADR GBP 101.50, RevPAR GBP 80.85, Revenue GBP 144m, GOI GBP 78m. This historical record is flagged for removal and is excluded from current PQ stock.
+
+1. EVENT HOTEL PYRAMIDE / VOSENDORF - Vienna, Austria - 461 keys - €110m - Hotel
+2. RADISSON RED VIENNA - Vienna, Austria - 179 keys - €82.5m - Hotel
+3. ZALATAHAUS PRAGUE - Prague, Czech Republic - 162 keys - €150m - Hotel
+4. JW MARRIOTT CANNES - Cannes, France - 261 keys - €475m - Hotel
+5. PALM BEACH / DEVELOPMENT - Cannes, France - Vacant building - €36m - Development / Vacant Building
+6. GRAND HOTEL CAP FERET - Cap Feret, France - 74 keys - Status: On LOI - Price: Not supplied
+7. AC HOTEL JUAN DES PINS - Juan des Pins, France - 221 keys - €75m
+8. BOWMANN PARIS - Paris, France - 53 keys - €99m
+9. DEVELOPMENT PARIS - Paris, France - 21,730 sqm - 6 floors + 3 basements - €650m - Development Opportunity
+10. HOTEL CALIFORNIA PARIS CHAMPS ELYSÈES - Paris, France - 145 keys - €400m
+11. HOTEL DU LOUVRE - Paris, France - 164 keys - €405m
+12. HYATT REGENCY PARIS - Paris, France - 995 keys - €600m
+13. LAND PARIS - Paris, France - 7,000 sqm - €75m - Land / Development
+14. LE CLEF, CHAMPS ELYSEE - Paris, France - 63 keys - €130m
+15. MERIDIEN ETOILE PARIS - Paris, France - 1,025 keys - €700m
+16. NAPOLEAN HOTEL PARIS - Paris, France - 96 keys - €210m
+17. SHANGRI-LA PARIS - Paris, France - 100 keys - €430m
+18. SOFITEL ARC DE TRIOMPHE - Paris, France - 124 keys - €200m
+19. COURTYARD BY MARRIOTT DÜSSELDORF - Düsseldorf, Germany - 221 keys - €35m
+20. INTERCONTINENTAL FRANKFURT - Frankfurt, Germany - 463 keys - €90m - Vacant possession
+21. ROYAL OLYMPIC ATHENS - Athens, Greece - 260 keys - €105m
+22. DIVANI GROUP - Athens / Larissa / Corfu / Meteora, Greece - Hotel Group / Portfolio - €785m
+23. SW MYKONOS - Mykonos, Greece - 40 keys - All suites - €39m
+24. PROJECT ALEXANDRA - Santorini, Greece - Luxury Development - €250k introduction fee
+25. ARIA HOTEL & RESIDENCES BUDAPEST - Budapest, Hungary - 53 existing hotel keys - 25 residences to develop - Price: TBA
+26. DEVELOPMENT OPPORTUNITY BUDAPEST - Budapest, Hungary - €80m
+27. HABTOOR PALACE BUDAPEST - Budapest, Hungary - 200 keys - Formerly Ritz Carlton - Price: TBA
+28. PARISI HOTEL BUDAPEST - Budapest, Hungary - €120m - Keys not supplied
+29. ON REQUEST — FLORENCE - Florence, Italy - 100 keys - €20m - Identity: On Request / Not supplied
+30. EDITION HOTEL LAKE COMO - Lake Como, Italy - 148 keys - €200m
+31. LAND MILAN - Milan, Italy - 20,000 sqm - €35m - Land / Development
+32. GRAND HOTEL PLAZA ROME - Rome, Italy - 200 keys - €350m
+33. HOTEL GRIFFE ROME - Rome, Italy - 138 keys - €79m
+34. HOTEL MARCELLA ROYAL ROME - Rome, Italy - 90 keys - €75m
+35. HOTEL TOR VERGATA ROME - Rome, Italy - 210 keys - €47m
+36. OCCIDENTAL ARAN PARK ROME - Rome, Italy - 325 keys - €50m
+37. GRAND HOTEL LONDRA SAN REMO / ITALIAN RIVIERA - San Remo, Italy - 130 keys - €18.5m
+38. AUSNIA HUNGARIA PALACE VENICE - Venice, Italy - 60 keys - €48m
+39. MIRAMAR MONACO - Monaco - 14 keys - €20m
+40. THE METROPOLE MONACO - Monaco - 125 keys - €3bn - Verification Priority: HIGH due to unusually large supplied price
+41. INTERCONTINENTAL LISBON - Lisbon, Portugal - 315 keys - TBA / No Guide
+42. RITZ FOUR SEASONS LISBON - Lisbon, Portugal - 280 keys - TBA / No Guide
+43. ALIADOS HOTEL PORTO - Porto, Portugal - 97 keys - €85m
+44. CROWNE PLAZA PORTO - Porto, Portugal - 232 keys - €360m
+45. DEVELOPMENT SITE BARCELONA - Barcelona, Spain - €42m - Development Site
+46. EDITION HOTEL BARCELONA - Barcelona, Spain - 100 keys - €100m
+47. HOTEL LEONOR BARCELONA - Barcelona, Spain - Price intelligence: €330m - Likely approximately €315m - PRICE CONFLICT — preserve both indications
+48. HOTEL VILA CELELLA BARCELONA - Barcelona, Spain - 170 keys - €4m - Verification Priority: HIGH due to supplied price
+49. FOUR SEASONS MADRID - Madrid, Spain - 200 keys - €950m
+50. HARD ROCK HOTEL MADRID - Madrid, Spain - 161 keys - TBA / No Guide
+51. HOTEL PUERTA AMERICA MADRID - Madrid, Spain - 315 keys - €123m
+52. MANDARIN ORIENTAL MADRID - Madrid, Spain - 167 keys - €695m
+53. BLUEBAY BANÚS MARBELLA - Marbella, Spain - 315 keys - €70m
+54. HARD ROCK HOTEL MARBELLA - Marbella, Spain - 384 keys - €114m
+55. HOTEL MONTEROS MARBELLA - Marbella, Spain - 195 keys - €120m
+56. DEVELOPMENT SITE VALENCIA & SPANISH ISLANDS - Valencia / Spanish Islands - 427 hotel rooms - 413 apartments - €180m - Alternative: €200m without operator - Preserve both commercial structures
+57. ART BASEL - Basel, Switzerland - 239 keys - CHF102.5m
+58. SCHWEIZERHOF BERN - Bern, Switzerland - 99 keys - CHF350m
+59. CROWNE PLAZA GENEVA - Geneva, Switzerland - 333 keys - TBA / No Guide
+60. FOUR SEASONS, BERGERS GENEVA - Geneva, Switzerland - 115 keys - €510m
+61. INTERCONTINENTAL GENEVA - Geneva, Switzerland - 366 keys - TBA / No Guide
+62. PRESIDENT WILSON GENEVA - Geneva, Switzerland - 240 keys - CHF450m
+63. ROYAL SAVOY LAUSANNE - Lausanne, Switzerland - 196 keys - CHF250m
+64. CROWNE PLAZA ZURICH - Zurich, Switzerland - 365 keys - CHF530m
+65. FIVE HOTEL ZURICH - Zurich, Switzerland - 149 keys - CHF130m
+66. BAYSWATER GARDEN HOTEL - Bayswater, London - 170 keys - £65m - Operating - Nine interconnected buildings
+67. BAYSWATER HOTEL - Bayswater, London - 53 keys - £17m - Under Offer - Previous planning consent
+68. GRAND ROYALE HYDE PARK - Bayswater, London - 189 keys - Price intelligence: £80m - Approximately £85m - Earlier source: £60m - Managed - Planning for larger rooms / more luxurious positioning - PRICE CONFLICT — preserve all indications
+69. THE NED - City of London - 250 keys - Managed - Landmark hotel - Original supplied price: "£500 GBP" - Later interpretation: £500m - DO NOT assert £500m as verified - Store as: CONFLICTING / MALFORMED SOURCE PRICE
+70. NOMAD COVENT GARDEN - Covent Garden, London - £170m - Previous context: £160m rejected
+71. EARL'S COURT BOUTIQUE HOTEL - Earl's Court, London - 60 keys - £22.5m - Operating - EBITDA £1.4m
+72. SANDERSON HOTEL - Fitzrovia, London - 150 keys - £160m–£170m - Another indication approximately £155m - Managed - Lifestyle
+73. EDITION HOTEL — FITZROVIA - Fitzrovia, London - 180 keys - £180m - Alternative range £180m–£220m - Flag Free - Lifestyle
+74. EARL'S COURT HOTEL - Gloucester Road, London - 150+ keys - £45m - Operating - Repositioning opportunity
+75. HEATHROW HOTEL - Heathrow / Great Western Road - 127 keys - £20m - Operating - Conference hotel
+76. ROSEWOOD HOLBORN - Holborn, London - 308 keys - £350m–£400m - Managed - Principals only
+77. HILTON KENSINGTON - Kensington, London - Price range £220m–£290m - Likely approximately £270m - Keys not supplied
+78. KENSINGTON HOTEL - Kensington, London - 39 keys - £26m - Operating - Restaurant & workspace
+79. 1 PALACE GATE APARTMENTS - Kensington, London - 70 units - £400m - Unmanaged - Administration sale - Branded residence opportunity - Approximately £25m capex - Former St. Regis development
+80. ROYAL GARDEN HOTEL - Kensington, London - 395 keys - Price indications: £400m - £440m - £485m - Owner Managed - Branding opportunity - Owner may negotiate
+81. KNIGHTSBRIDGE BOUTIQUE HOTEL - Knightsbridge, London - 30 keys - £28m - Operating - Adjacent Harrods
+82. CORUS HYDE PARK - Lancaster Gate, London - 389 keys - Original supplied price: "£250 GBP" - DO NOT automatically interpret as £250m - Refurbishment / On Hold - Refurbishment completion: September 2026 - Verification Priority: HIGH
+83. THE LONDONER - Leicester Square, London - 350 keys - £750m - POA also recorded - Owner Managed - Mixed-use / Hotel
+84. 130 QUEENS GATE - London - 50 keys - £115m
+85. AMBASSADORS HOTEL - London - 150 keys - £65m
+86. BILTMORE LONDON - London - 307 keys - £450m
+87. HILL STREET - London - 65 keys - £115m
+88. KINNAIRD HOUSE — 1 PALL MALL - London - £115m - Development Opportunity
+89. KNIGHTSBRIDGE DEVELOPMENT - London - 154 proposed keys - £165m - Development Opportunity
+90. MANDARIN ORIENTAL, HANOVER SQUARE - London - 50 keys - £350m
+91. ROSEWOOD HOTEL LONDON - London - 308 keys - £350m - Potential overlap with ROSEWOOD HOLBORN - DO NOT automatically merge - Run entity resolution
+92. SAVILE ROW DEVELOPMENT - London - 80 proposed keys - £105m
+93. SIGNATURE J HOTEL — LANCASTER GATE - Lancaster Gate, London - 43 keys - £19m
+94. SIGNATURE J HOTEL — PARK AVENUE - London - 44 keys - £19m
+95. THE BVLGARI LONDON - London - 85 keys - £400m
+96. THE LANESBOROUGH - London - 100 keys - £425m
+97. THE SHEPHERD - London - 82 keys - £160m - POA also recorded - Unmanaged - Boutique
+98. THE STRATFORD HOTEL - London - 145 keys - £85m
+99. THE ELIZABETH HOTEL - Lancaster Gate, London - 52 keys - £30m–£35m
+100. VOCO MARYLEBONE - Marylebone, London - 92 keys - £52m - Likely £50m–£52m - IHG / voco - Modern
+101. MANDARIN ORIENTAL HANOVER SQUARE - Mayfair, London - 50 keys - £350m–£400m - Likely £375m–£400m - Managed - Residences - Potential duplicate/overlap with record 90 - Run entity resolution - Preserve both source records
+102. WASHINGTON MAYFAIR - Mayfair, London - £350m - Likely approximately £330m - Keys not supplied
+103. MARRIOTT PARK LANE - Mayfair, London - 152 keys - £235m - Vendor acceptance approximately £200m - Likely approximately £200m - Marriott - Upgrade opportunity
+104. THE WESTBURY - Mayfair, London - 244 keys - Price indications: £800m - £1.5bn - POA - Managed - Burberry store - Apartments - MAJOR PRICE CONFLICT
+105. NORFOLK SQUARE HOTEL - Paddington, London - 55 keys - £18m - Operating - Turnkey
+106. PADDINGTON HOTEL A - Paddington, London - 120 keys - £40m - Operating - Restaurant - Bar - Parking - Identity requires verification
+107. PADDINGTON HOTEL B - Paddington, London - 230 keys - £70m - Operating - Fitness centre - Identity requires verification
+108. COURTHOUSE HOTEL SHOREDITCH - Shoreditch, London - 128 keys - £200m - Vacant possession - Former courthouse - POA also recorded
+109. COURTHOUSE HOTEL SOHO - Soho, London - 116 keys - £200m - Vacant possession - Grade II listed - POA also recorded
+110. SOUTH KENSINGTON LUXURY HOTEL - South Kensington, London - 24 suites - £25m - Operating - Spa - Gym - Sauna - Buyer fee - Identity requires verification
+111. 50 ST JAMES'S STREET - St James's, London - Historic Building / Development Opportunity - £110m - Direct / Off Market - Prioritise direct seller/principal verification
+112. 1 PALACE STREET - Westminster, London - £425m - POA - Hospitality / Development Asset
+113. THE GUARDSMAN - Westminster, London - 53 hotel keys - 6 residences - Price indications: £65m - £60m - Likely £50m–£65m - Direct - Can be flag-free
+114. GREAT SCOTLAND YARD - Westminster, London - 153 keys - £180m - Vendor acceptance approximately £150m - Likely approximately £150m - Managed - Hyatt
+115. PROJECT LUKAS - Bahamas - Luxury Development - US$350k introduction fee
+116. REDEVELOPMENT DEYTONA / MIAMI - Miami, USA - 323 proposed keys - US$45m - Redevelopment Opportunity - Preserve source spelling "Deytona" - Do not silently correct the project identity
+117. W HOTEL BRICKELL - Miami, USA - 146 keys - US$65m
+118. CASSA HOTEL NEW YORK - New York, USA - 166 keys - US$70m
+119. HOTEL HENDRICKS - New York City, USA - 176 keys - US$100m
+120. NYMA HOTEL - New York City, USA - 170 keys - US$95m
+121. REFINERY HOTEL - New York City, USA - 197 keys - US$240m
+122. ROYALTON NEW YORK - New York City, USA - 168 keys - US$55m
+123. THE HOTEL AT FIFTH AVENUE - New York City, USA - 182 keys - US$90m
 `;

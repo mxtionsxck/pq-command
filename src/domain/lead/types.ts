@@ -47,6 +47,7 @@ export interface LeadDrawerRecord {
   companyName: string | null;
   contactName: string | null;
   propertyTitle: string | null;
+  plan: string | null;
   signals: Array<{
     id: string;
     type: string;
