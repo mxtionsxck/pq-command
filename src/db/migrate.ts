@@ -685,6 +685,27 @@ async function main() {
     `);
   }
 
+  function isSafeMigrationAlreadyAppliedError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+      return false;
+    }
+
+    const nestedMessage =
+      typeof (error as { cause?: unknown }).cause === "object" &&
+      (error as { cause?: { message?: string } }).cause
+        ? (error as { cause: { message?: string } }).cause.message
+        : "";
+
+    const combined = `${error.message} ${nestedMessage}`.toLowerCase();
+
+    return (
+      combined.includes("already exists") ||
+      combined.includes("duplicate type") ||
+      combined.includes("duplicate object") ||
+      combined.includes("relation \"drizzle\" already exists")
+    );
+  }
+
   try {
     const db = drizzle(sql);
 
@@ -693,16 +714,12 @@ async function main() {
         migrationsFolder,
       });
     } catch (error) {
-      const isDuplicatePilotFeedbackType =
-        error instanceof Error &&
-        error.message.includes('type "pilot_feedback_label" already exists');
-
-      if (!isDuplicatePilotFeedbackType) {
+      if (!isSafeMigrationAlreadyAppliedError(error)) {
         throw error;
       }
 
       console.warn(
-        "Detected existing pilot_feedback_label type during migration. Applying critical table repair fallback.",
+        "Detected already-applied migration state during Drizzle migration. Applying critical runtime repair fallback.",
       );
     }
 
