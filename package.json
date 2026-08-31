@@ -13,7 +13,7 @@
     "local:register-startup": "powershell -ExecutionPolicy Bypass -File scripts/register-pq-command-startup.ps1",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/**/*.test.ts",
+    "test": "tsx --test tests/*.test.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "drizzle-kit generate",
