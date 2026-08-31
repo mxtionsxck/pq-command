@@ -10,15 +10,15 @@ test("production startup includes database migrations before server or bot boot"
     fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"),
   ) as { scripts?: Record<string, string> };
 
-  assert.equal(packageJson.scripts?.prestart, "npm run db:migrate");
-  assert.equal(packageJson.scripts?.prebot, "npm run db:migrate");
+  assert.equal(packageJson.scripts?.["prestart"], "npm run db:migrate");
+  assert.equal(packageJson.scripts?.["prebot"], "npm run db:migrate");
 
   const dockerfile = fs.readFileSync(
     path.join(repoRoot, "Dockerfile"),
     "utf8",
   );
 
-  assert.match(dockerfile, /npm run db:migrate.*node server\.js/s);
+  assert.match(dockerfile, /npm run db:migrate[\s\S]*node server\.js/);
 });
 
 test("lead schema migration includes the columns expected by the live lead room", () => {
@@ -34,15 +34,15 @@ test("lead schema migration includes the columns expected by the live lead room"
   );
   assert.match(
     migrationText,
-    /ALTER TABLE "leads".*ADD COLUMN IF NOT EXISTS "lead_type" "public"\."lead_type"/s,
+    /ALTER TABLE "leads"[\s\S]*ADD COLUMN IF NOT EXISTS "lead_type" "public"\."lead_type"/,
   );
   assert.match(
     migrationText,
-    /ALTER TABLE "leads".*ADD COLUMN IF NOT EXISTS "directness_classification" "public"\."directness_classification"/s,
+    /ALTER TABLE "leads"[\s\S]*ADD COLUMN IF NOT EXISTS "directness_classification" "public"\."directness_classification"/,
   );
   assert.match(
     migrationText,
-    /ALTER TABLE "leads".*ADD COLUMN IF NOT EXISTS "directness_verified" boolean/s,
+    /ALTER TABLE "leads"[\s\S]*ADD COLUMN IF NOT EXISTS "directness_verified" boolean/,
   );
 });
 
