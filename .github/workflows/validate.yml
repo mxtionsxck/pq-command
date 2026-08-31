@@ -1,0 +1,54 @@
+name: Validate PQ Command
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit --pretty false
+
+      - name: Tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Migration safety guard
+        run: |
+          if [ ! -f drizzle/0019_fix_conversations_runtime.sql ]; then
+            echo "Missing drizzle/0019_fix_conversations_runtime.sql"
+            exit 1
+          fi
+
+          if grep -Eiq 'DROP TABLE|TRUNCATE|DELETE FROM conversations|DROP COLUMN|DROP TYPE conversation_status' drizzle/0019_fix_conversations_runtime.sql; then
+            echo "Destructive SQL detected in drizzle/0019_fix_conversations_runtime.sql"
+            exit 1
+          fi
+
+          echo "Migration file passed destructive SQL guard."
+
+      - name: Whitespace validation
+        run: git diff --check
