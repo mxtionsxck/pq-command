@@ -18,7 +18,15 @@ test("production startup includes database migrations before server or bot boot"
     "utf8",
   );
 
-  assert.match(dockerfile, /npm run db:migrate[\s\S]*node server\.js/);
+  const migrationIndex = dockerfile.indexOf("RUN npm run db:migrate");
+  const serverIndex = dockerfile.indexOf('CMD ["node", "server.js"]');
+
+  assert.notEqual(migrationIndex, -1, "Dockerfile should run database migrations");
+  assert.notEqual(serverIndex, -1, "Dockerfile should start the server with CMD [\"node\", \"server.js\"]");
+  assert.ok(
+    migrationIndex < serverIndex,
+    "Database migration must run before the server starts",
+  );
 });
 
 test("lead schema migration includes the columns expected by the live lead room", () => {
