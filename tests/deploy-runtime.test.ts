@@ -45,3 +45,16 @@ test("lead schema migration includes the columns expected by the live lead room"
     /ALTER TABLE "leads".*ADD COLUMN IF NOT EXISTS "directness_verified" boolean/s,
   );
 });
+
+test("runtime repair ensures the shared internal pages have their required tables and enums", () => {
+  const migrateSource = fs.readFileSync(
+    path.join(repoRoot, "src", "db", "migrate.ts"),
+    "utf8",
+  );
+
+  assert.match(migrateSource, /CREATE TABLE IF NOT EXISTS requirements/);
+  assert.match(migrateSource, /CREATE TABLE IF NOT EXISTS tasks/);
+  assert.match(migrateSource, /CREATE TABLE IF NOT EXISTS deals/);
+  assert.match(migrateSource, /CREATE TABLE IF NOT EXISTS viewings/);
+  assert.match(migrateSource, /CREATE TABLE IF NOT EXISTS shortage_intelligence_rows/);
+});

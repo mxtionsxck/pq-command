@@ -286,6 +286,217 @@ async function main() {
     `);
 
     await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'requirement_status') THEN
+          CREATE TYPE requirement_status AS ENUM ('open', 'matched', 'on_hold', 'closed', 'archived');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'requirement_relationship') THEN
+          CREATE TYPE requirement_relationship AS ENUM ('DIRECT', 'INTRODUCER', 'UNKNOWN');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'requirement_urgency') THEN
+          CREATE TYPE requirement_urgency AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'shortage_priority') THEN
+          CREATE TYPE shortage_priority AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'shortage_status') THEN
+          CREATE TYPE shortage_status AS ENUM ('active', 'converted', 'archived');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'task_status') THEN
+          CREATE TYPE task_status AS ENUM ('todo', 'in_progress', 'done', 'cancelled');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'task_priority') THEN
+          CREATE TYPE task_priority AS ENUM ('low', 'medium', 'high', 'urgent');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'viewing_status') THEN
+          CREATE TYPE viewing_status AS ENUM ('proposed', 'scheduled', 'reminded', 'confirmed', 'completed', 'cancelled', 'no_show');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'deal_status') THEN
+          CREATE TYPE deal_status AS ENUM ('MATCHED', 'VIEWING', 'OFFER', 'NEGOTIATION', 'AGREED', 'CONTRACT', 'LIVE', 'COMPLETED', 'LOST');
+        END IF;
+      END
+      $$;
+    `);
+
+    await sql.unsafe(`
+      CREATE TABLE IF NOT EXISTS requirements (
+        id text PRIMARY KEY NOT NULL,
+        created_at timestamp with time zone DEFAULT now() NOT NULL,
+        updated_at timestamp with time zone DEFAULT now() NOT NULL,
+        archived_at timestamp with time zone,
+        lead_id text REFERENCES leads(id) ON DELETE SET NULL,
+        company_id text REFERENCES companies(id) ON DELETE SET NULL,
+        contact_id text REFERENCES contacts(id) ON DELETE SET NULL,
+        owner_user_id text REFERENCES users(id) ON DELETE SET NULL,
+        status requirement_status NOT NULL DEFAULT 'open',
+        budget_min_cents integer,
+        budget_max_cents integer,
+        bedrooms_min integer,
+        bedrooms_max integer,
+        unit_count integer,
+        acceptable_radius_miles integer,
+        preferred_area varchar(200),
+        start_date date,
+        term_months integer,
+        purpose varchar(200),
+        urgency requirement_urgency NOT NULL DEFAULT 'MEDIUM',
+        relationship_type requirement_relationship NOT NULL DEFAULT 'UNKNOWN',
+        direct_relationship_verified boolean NOT NULL DEFAULT false,
+        evidence_ids jsonb DEFAULT '[]'::jsonb NOT NULL,
+        next_action text,
+        notes text
+      );
+    `);
+
+    await sql.unsafe(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id text PRIMARY KEY NOT NULL,
+        created_at timestamp with time zone DEFAULT now() NOT NULL,
+        updated_at timestamp with time zone DEFAULT now() NOT NULL,
+        archived_at timestamp with time zone,
+        assigned_to_user_id text REFERENCES users(id) ON DELETE SET NULL,
+        created_by_user_id text REFERENCES users(id) ON DELETE SET NULL,
+        lead_id text REFERENCES leads(id) ON DELETE SET NULL,
+        deal_id text REFERENCES deals(id) ON DELETE SET NULL,
+        viewing_id text REFERENCES viewings(id) ON DELETE SET NULL,
+        objective_id text REFERENCES objectives(id) ON DELETE SET NULL,
+        title varchar(200) NOT NULL,
+        description text,
+        status task_status NOT NULL DEFAULT 'todo',
+        priority task_priority NOT NULL DEFAULT 'medium',
+        due_at timestamp with time zone,
+        completed_at timestamp with time zone
+      );
+    `);
+
+    await sql.unsafe(`
+      CREATE TABLE IF NOT EXISTS viewings (
+        id text PRIMARY KEY NOT NULL,
+        created_at timestamp with time zone DEFAULT now() NOT NULL,
+        updated_at timestamp with time zone DEFAULT now() NOT NULL,
+        match_id text REFERENCES matches(id) ON DELETE SET NULL,
+        property_id text NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+        requirement_id text REFERENCES requirements(id) ON DELETE SET NULL,
+        company_id text REFERENCES companies(id) ON DELETE SET NULL,
+        contact_id text REFERENCES contacts(id) ON DELETE SET NULL,
+        scheduled_by_user_id text REFERENCES users(id) ON DELETE SET NULL,
+        status viewing_status NOT NULL DEFAULT 'proposed',
+        scheduled_for timestamp with time zone NOT NULL,
+        completed_at timestamp with time zone,
+        attendees jsonb DEFAULT '[]'::jsonb NOT NULL,
+        outcome text,
+        next_action text,
+        commercial_notes text,
+        reminder_at timestamp with time zone,
+        notes text
+      );
+    `);
+
+    await sql.unsafe(`
+      CREATE TABLE IF NOT EXISTS deals (
+        id text PRIMARY KEY NOT NULL,
+        created_at timestamp with time zone DEFAULT now() NOT NULL,
+        updated_at timestamp with time zone DEFAULT now() NOT NULL,
+        archived_at timestamp with time zone,
+        company_id text REFERENCES companies(id) ON DELETE SET NULL,
+        contact_id text REFERENCES contacts(id) ON DELETE SET NULL,
+        property_id text REFERENCES properties(id) ON DELETE SET NULL,
+        requirement_id text REFERENCES requirements(id) ON DELETE SET NULL,
+        match_id text REFERENCES matches(id) ON DELETE SET NULL,
+        lead_id text REFERENCES leads(id) ON DELETE SET NULL,
+        owner_user_id text REFERENCES users(id) ON DELETE SET NULL,
+        status deal_status NOT NULL DEFAULT 'MATCHED',
+        next_action text,
+        commercial_summary text,
+        blockers jsonb DEFAULT '[]'::jsonb NOT NULL,
+        value_cents integer,
+        expected_close_at date,
+        closed_at timestamp with time zone,
+        summary text
+      );
+    `);
+
+    await sql.unsafe(`
+      CREATE TABLE IF NOT EXISTS shortage_intelligence_rows (
+        id text PRIMARY KEY NOT NULL,
+        created_at timestamp with time zone DEFAULT now() NOT NULL,
+        updated_at timestamp with time zone DEFAULT now() NOT NULL,
+        archived_at timestamp with time zone,
+        borough varchar(120),
+        area varchar(200),
+        bedrooms_band varchar(32) NOT NULL,
+        unit_count_band varchar(32) NOT NULL,
+        budget_band varchar(32) NOT NULL,
+        availability_window varchar(64) NOT NULL,
+        active_demand integer NOT NULL DEFAULT 0,
+        suitable_stock integer NOT NULL DEFAULT 0,
+        estimated_gap integer NOT NULL DEFAULT 0,
+        priority shortage_priority NOT NULL DEFAULT 'MEDIUM',
+        status shortage_status NOT NULL DEFAULT 'active',
+        trace jsonb DEFAULT '{}'::jsonb NOT NULL,
+        converted_objective_id text REFERENCES objectives(id) ON DELETE SET NULL,
+        converted_campaign_id text REFERENCES outreach_campaigns(id) ON DELETE SET NULL
+      );
+    `);
+
+    await sql.unsafe(`
       CREATE INDEX IF NOT EXISTS conversations_owner_status_idx ON conversations (owner_user_id, status);
       CREATE INDEX IF NOT EXISTS conversations_contact_status_idx ON conversations (contact_id, status);
       CREATE INDEX IF NOT EXISTS conversations_lead_status_idx ON conversations (lead_id, status);
