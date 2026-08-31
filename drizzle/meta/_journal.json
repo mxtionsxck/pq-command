@@ -120,6 +120,13 @@
       "when": 1756639200000,
       "tag": "0018_live_lead_runtime_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1756639200001,
+      "tag": "0019_fix_conversations_runtime",
+      "breakpoints": true
     }
   ]
 }
