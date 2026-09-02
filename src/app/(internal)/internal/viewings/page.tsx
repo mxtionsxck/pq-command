@@ -44,10 +44,16 @@ export default async function ViewingsPage({ searchParams }: PageProps) {
   const selectedViewingId = readParam(params, "viewingId");
 
   const service = createViewingWorkflowService();
-  const rows = await service.listViewings();
-  const brief = selectedViewingId
-    ? await service.getViewingBrief(selectedViewingId)
-    : null;
+  const [viewingsResult, briefResult] = await Promise.allSettled([
+    service.listViewings(),
+    selectedViewingId ? service.getViewingBrief(selectedViewingId) : Promise.resolve(null),
+  ]);
+
+  const rows =
+    viewingsResult.status === "fulfilled" && Array.isArray(viewingsResult.value)
+      ? viewingsResult.value
+      : [];
+  const brief = briefResult.status === "fulfilled" ? briefResult.value ?? null : null;
 
   return (
     <AppShell>

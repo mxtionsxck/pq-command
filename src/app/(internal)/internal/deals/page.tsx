@@ -45,8 +45,17 @@ export default async function DealsPage({ searchParams }: PageProps) {
   const selectedDealId = readParam(params, "dealId");
 
   const service = createDealRoomService();
-  const rows = await service.listDeals();
-  const room = selectedDealId ? await service.getDealRoom(selectedDealId) : null;
+  const [dealListResult, dealRoomResult] = await Promise.allSettled([
+    service.listDeals(),
+    selectedDealId ? service.getDealRoom(selectedDealId) : Promise.resolve(null),
+  ]);
+
+  const rows =
+    dealListResult.status === "fulfilled" && Array.isArray(dealListResult.value)
+      ? dealListResult.value
+      : [];
+  const room =
+    dealRoomResult.status === "fulfilled" ? dealRoomResult.value ?? null : null;
 
   return (
     <AppShell>

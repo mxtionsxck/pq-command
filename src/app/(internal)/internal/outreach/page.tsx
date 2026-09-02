@@ -71,16 +71,29 @@ export default async function OutreachPage({
   const bedroomsMax = asInteger(readParam(params, "bedroomsMax"));
   const unitCountMin = asInteger(readParam(params, "unitCountMin"));
 
-  const preview = await service.previewEligibility({
-    minimumScore,
-    ...(sourceId ? { sourceId } : {}),
-    ...(location ? { location } : {}),
-    ...(bedroomsMin !== undefined ? { bedroomsMin } : {}),
-    ...(bedroomsMax !== undefined ? { bedroomsMax } : {}),
-    ...(unitCountMin !== undefined ? { unitCountMin } : {}),
-  });
-  const campaigns = await service.listCampaigns();
-  const readiness = createProviderReadinessService().getOutreachReadiness();
+  const [previewResult, campaignsResult, readinessResult] = await Promise.allSettled([
+    service.previewEligibility({
+      minimumScore,
+      ...(sourceId ? { sourceId } : {}),
+      ...(location ? { location } : {}),
+      ...(bedroomsMin !== undefined ? { bedroomsMin } : {}),
+      ...(bedroomsMax !== undefined ? { bedroomsMax } : {}),
+      ...(unitCountMin !== undefined ? { unitCountMin } : {}),
+    }),
+    service.listCampaigns(),
+    Promise.resolve(createProviderReadinessService().getOutreachReadiness()),
+  ]);
+
+  const preview = previewResult.status === "fulfilled" ? previewResult.value : [];
+  const campaigns = campaignsResult.status === "fulfilled" ? campaignsResult.value : [];
+  const readiness =
+    readinessResult.status === "fulfilled"
+      ? readinessResult.value
+      : {
+          email: { status: "configuration_required", detail: "Channel readiness is temporarily unavailable." },
+          sms: { status: "configuration_required", detail: "Channel readiness is temporarily unavailable." },
+          whatsapp: { status: "configuration_required", detail: "Channel readiness is temporarily unavailable." },
+        };
 
   return (
     <AppShell>

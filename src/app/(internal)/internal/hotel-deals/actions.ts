@@ -20,13 +20,19 @@ export async function importPqHotelInventoryAction() {
   const user = await requireCurrentUser();
   const service = createHotelDealIntelligenceService();
 
-  await service.seedMasterInventory({
-    ...createAuditActor(user),
-    role: user.role,
-  });
+  try {
+    await service.seedMasterInventory({
+      ...createAuditActor(user),
+      role: user.role,
+    });
+  } catch (error) {
+    console.error("[hotel-deals] import inventory failed", error);
+  }
 
-  revalidatePath("/internal/hotel-deals");
-  revalidatePath("/internal/command-centre");
+  await Promise.all([
+    revalidatePath("/internal/hotel-deals"),
+    revalidatePath("/internal/command-centre"),
+  ]);
 }
 
 export async function createHotelHumanHandoffTaskAction(formData: FormData) {
@@ -40,30 +46,40 @@ export async function createHotelHumanHandoffTaskAction(formData: FormData) {
 
   const description = readText(formData, "description");
 
-  await service.createHumanHandoffTask(
-    {
-      leadId,
-      title: readText(formData, "title") ?? "RESPONDED - HUMAN ACTION REQUIRED",
-      ...(description ? { description } : {}),
-    },
-    {
-      ...createAuditActor(user),
-      role: user.role,
-    },
-  );
+  try {
+    await service.createHumanHandoffTask(
+      {
+        leadId,
+        title: readText(formData, "title") ?? "RESPONDED - HUMAN ACTION REQUIRED",
+        ...(description ? { description } : {}),
+      },
+      {
+        ...createAuditActor(user),
+        role: user.role,
+      },
+    );
+  } catch (error) {
+    console.error("[hotel-deals] create human handoff failed", error);
+  }
 
-  revalidatePath("/internal/hotel-deals");
+  await revalidatePath("/internal/hotel-deals");
 }
 
 export async function runHotelUnifiedCycleAction() {
   const user = await requireCurrentUser();
   const service = createHotelDealIntelligenceService();
 
-  await service.runUnifiedCycle({
-    ...createAuditActor(user),
-    role: user.role,
-  });
+  try {
+    await service.runUnifiedCycle({
+      ...createAuditActor(user),
+      role: user.role,
+    });
+  } catch (error) {
+    console.error("[hotel-deals] run unified cycle failed", error);
+  }
 
-  revalidatePath("/internal/hotel-deals");
-  revalidatePath("/internal/command-centre");
+  await Promise.all([
+    revalidatePath("/internal/hotel-deals"),
+    revalidatePath("/internal/command-centre"),
+  ]);
 }

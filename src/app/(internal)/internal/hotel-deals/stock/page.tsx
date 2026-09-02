@@ -4,6 +4,7 @@ import { Card, EmptyState } from "@/components/ui";
 import { getDatabaseConfig } from "@/db/config";
 import { appEnv } from "@/lib/env";
 import { requireCurrentUserPermission } from "@/server/auth/session";
+import { createHotelDealIntelligenceService } from "@/server/services/hotel-deal-intelligence-service";
 
 export default async function HotelStockSubPage() {
   await requireCurrentUserPermission("sendOutreach");
@@ -20,9 +21,16 @@ export default async function HotelStockSubPage() {
   }
 
   try {
-    const stock: Array<Record<string, unknown>> = [];
-    const buyers: Array<Record<string, unknown>> = [];
-    const matches: Array<Record<string, unknown>> = [];
+    const service = createHotelDealIntelligenceService();
+    const [stockResult, buyersResult, matchesResult] = await Promise.allSettled([
+      service.listLiveStockUniverse(50),
+      service.listDirectBuyers(25),
+      service.generateMatches(10),
+    ]);
+
+    const stock = stockResult.status === "fulfilled" ? stockResult.value : [];
+    const buyers = buyersResult.status === "fulfilled" ? buyersResult.value : [];
+    const matches = matchesResult.status === "fulfilled" ? matchesResult.value : [];
     const contacts: Array<Record<string, unknown>> = [];
 
     return (
