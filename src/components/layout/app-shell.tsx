@@ -104,7 +104,7 @@ export function AppShell({ children }: AppShellProps) {
     return null;
   };
 
-  const shellPadding = isInternalSurface ? "pb-24 md:pb-8" : "";
+  const shellPadding = isInternalSurface ? "pb-32 md:pb-8" : "";
 
   return (
     <main className={`min-h-screen px-3 py-4 sm:px-6 sm:py-8 lg:px-10 lg:py-10 ${shellPadding}`} id="main-content" tabIndex={-1}>
@@ -169,7 +169,7 @@ export function AppShell({ children }: AppShellProps) {
           {isInternalSurface ? (
             <nav
               aria-label="Mobile internal navigation"
-              className="fixed inset-x-3 bottom-3 z-50 rounded-[var(--pq-radius-md)] border border-[color:var(--pq-border)] bg-[color:var(--pq-background-elevated)] p-2 shadow-[var(--pq-shadow-panel)] backdrop-blur lg:hidden"
+              className="fixed inset-x-3 bottom-3 z-50 max-h-[calc(100vh-1.5rem)] overflow-y-auto rounded-[var(--pq-radius-md)] border border-[color:var(--pq-border)] bg-[color:var(--pq-background-elevated)] p-2 shadow-[var(--pq-shadow-panel)] backdrop-blur lg:hidden"
             >
               <div className="grid grid-cols-4 gap-2">
                 {primaryNav.slice(0, 4).map((item) => (
