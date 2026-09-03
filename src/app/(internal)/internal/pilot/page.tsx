@@ -27,7 +27,30 @@ export default async function PilotModePage() {
   }
 
   const service = createPilotModeService();
-  const dashboard = await service.getDashboard();
+  const dashboardResult = await Promise.allSettled([service.getDashboard()]);
+  const dashboard =
+    dashboardResult[0].status === "fulfilled"
+      ? dashboardResult[0].value
+      : {
+          workflows: [],
+          feedbackSummary: {
+            GOOD_AI: 0,
+            WRONG: 0,
+            MISSING: 0,
+            NEEDS_HUMAN: 0,
+          },
+          dailySummary: {
+            totalFeedback: 0,
+            aiErrorsToday: 0,
+            requirementsCreatedToday: 0,
+            hotRepliesOpen: 0,
+          },
+          recentFeedback: [],
+        };
+
+  if (dashboardResult[0].status === "rejected") {
+    console.error("Pilot dashboard failed:", dashboardResult[0].reason);
+  }
 
   return (
     <AppShell>

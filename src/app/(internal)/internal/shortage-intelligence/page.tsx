@@ -53,12 +53,19 @@ export default async function ShortageIntelligencePage({ searchParams }: PagePro
     | "future"
     | undefined;
 
-  const rows = await service.list({
-    ...(borough ? { borough } : {}),
-    ...(area ? { area } : {}),
-    ...(budgetBand ? { budgetBand } : {}),
-    ...(availabilityWindow ? { availabilityWindow } : {}),
-  });
+  const rowsResult = await Promise.allSettled([
+    service.list({
+      ...(borough ? { borough } : {}),
+      ...(area ? { area } : {}),
+      ...(budgetBand ? { budgetBand } : {}),
+      ...(availabilityWindow ? { availabilityWindow } : {}),
+    }),
+  ]);
+
+  const rows = rowsResult[0].status === "fulfilled" ? rowsResult[0].value : [];
+  if (rowsResult[0].status === "rejected") {
+    console.error("Shortage intelligence listing failed:", rowsResult[0].reason);
+  }
 
   return (
     <AppShell>

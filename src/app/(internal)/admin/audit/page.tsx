@@ -30,7 +30,18 @@ export default async function AdminAuditPage() {
   }
 
   const auditService = createAuditService();
-  const events = await auditService.listRecent({ limit: 100 });
+  const auditResult = await Promise.allSettled([
+    auditService.listRecent({ limit: 100 }),
+  ]);
+
+  const events =
+    auditResult[0].status === "fulfilled" && Array.isArray(auditResult[0].value)
+      ? auditResult[0].value
+      : [];
+
+  if (auditResult[0].status === "rejected") {
+    console.error("Audit history failed to load:", auditResult[0].reason);
+  }
 
   return (
     <AppShell>
@@ -42,14 +53,24 @@ export default async function AdminAuditPage() {
         />
 
         <div className="flex flex-wrap gap-3">
-          <Badge tone="success">{events.length} event(s)</Badge>
+          <Badge tone={events.length > 0 ? "success" : "warning"}>
+            {events.length} event(s)
+          </Badge>
           <Badge tone="info">Sanitized metadata</Badge>
         </div>
 
         {events.length === 0 ? (
           <EmptyState
-            description="No audit events have been recorded in this environment yet."
-            title="Audit history is empty"
+            description={
+              auditResult[0].status === "rejected"
+                ? "Audit history is temporarily unavailable while the underlying store recovers."
+                : "No audit events have been recorded in this environment yet."
+            }
+            title={
+              auditResult[0].status === "rejected"
+                ? "Audit history temporarily unavailable"
+                : "Audit history is empty"
+            }
           />
         ) : (
           <Card eyebrow="Audit" title="Recent mutations">

@@ -72,11 +72,39 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
     ...(agentUserId ? { agentUserId } : {}),
   };
 
-  const [funnel, snapshots, northStar] = await Promise.all([
+  const [funnelResult, snapshotsResult, northStarResult] = await Promise.allSettled([
     service.computeFunnel(filter),
     service.listSnapshots({ periodStart: filter.periodStart, periodEnd: filter.periodEnd }),
     orchestratorService.getCommercialNorthStarSnapshot(),
   ]);
+
+  const funnel =
+    funnelResult.status === "fulfilled"
+      ? funnelResult.value
+      : { metrics: [] };
+  const snapshots =
+    snapshotsResult.status === "fulfilled" ? snapshotsResult.value : [];
+  const northStar =
+    northStarResult.status === "fulfilled"
+      ? northStarResult.value
+      : {
+          weekStart: now,
+          weeklyTargetLow: 0,
+          weeklyTargetHigh: 0,
+          completedLetsThisWeek: 0,
+          pipelineValueCents: 0,
+          weightedPipelineValueCents: 0,
+        };
+
+  if (funnelResult.status === "rejected") {
+    console.error("Analytics funnel failed:", funnelResult.reason);
+  }
+  if (snapshotsResult.status === "rejected") {
+    console.error("Analytics snapshots failed:", snapshotsResult.reason);
+  }
+  if (northStarResult.status === "rejected") {
+    console.error("North star snapshot failed:", northStarResult.reason);
+  }
 
   return (
     <AppShell>

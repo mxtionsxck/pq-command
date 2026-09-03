@@ -25,7 +25,12 @@ export default async function EconomicsSignalsPage() {
   }
 
   const service = createEconomicsSignalService();
-  const rows = await service.listSignals();
+  const signalsResult = await Promise.allSettled([service.listSignals()]);
+  const rows = signalsResult[0].status === "fulfilled" ? signalsResult[0].value : [];
+
+  if (signalsResult[0].status === "rejected") {
+    console.error("Economics signals listing failed:", signalsResult[0].reason);
+  }
 
   return (
     <AppShell>

@@ -30,8 +30,31 @@ export default async function RentControlPage() {
   }
 
   const service = createTenancyPaymentService();
-  const snapshot = await service.getDashboardSnapshot();
-  const alerts = await service.listAlerts(30);
+  const [snapshotResult, alertsResult] = await Promise.allSettled([
+    service.getDashboardSnapshot(),
+    service.listAlerts(30),
+  ]);
+
+  const snapshot =
+    snapshotResult.status === "fulfilled" ? snapshotResult.value : {
+      activeTenancies: 0,
+      totalRentDueCents: 0,
+      totalRentReceivedCents: 0,
+      totalOutstandingCents: 0,
+      totalLandlordPayableCents: 0,
+      totalPaidToLandlordCents: 0,
+      overdueEntries: 0,
+      dueThisWeek: 0,
+      dueThisMonth: 0,
+    };
+  const alerts = alertsResult.status === "fulfilled" ? alertsResult.value : [];
+
+  if (snapshotResult.status === "rejected") {
+    console.error("Rent control snapshot failed:", snapshotResult.reason);
+  }
+  if (alertsResult.status === "rejected") {
+    console.error("Rent control alerts failed:", alertsResult.reason);
+  }
 
   return (
     <AppShell>

@@ -43,3 +43,28 @@ test("hotel stock room reads real stock data and actions guard AI/import failure
   expectText(stockPage, /createHotelDealIntelligenceService|listLiveStockUniverse|EmptyState/);
   expectText(actions, /try\s*\{\s*await\s+service\.(runUnifiedCycle|seedMasterInventory)|console\.error|revalidatePath/);
 });
+
+test("the 10 live failure pages must degrade safely instead of crashing the route shell", () => {
+  const files = [
+    ["Audit History", path.join(repoRoot, "src", "app", "(internal)", "admin", "audit", "page.tsx")],
+    ["Source Registry", path.join(repoRoot, "src", "app", "(internal)", "admin", "sources", "page.tsx")],
+    ["Rent Control", path.join(repoRoot, "src", "app", "(internal)", "internal", "rent-control", "page.tsx")],
+    ["Document Control", path.join(repoRoot, "src", "app", "(internal)", "internal", "documents", "page.tsx")],
+    ["Agent Pilot", path.join(repoRoot, "src", "app", "(internal)", "internal", "pilot", "page.tsx")],
+    ["Shortage Intelligence", path.join(repoRoot, "src", "app", "(internal)", "internal", "shortage-intelligence", "page.tsx")],
+    ["LHA Signal Module", path.join(repoRoot, "src", "app", "(internal)", "internal", "economics-signals", "page.tsx")],
+    ["AI Activity", path.join(repoRoot, "src", "app", "(internal)", "admin", "operations", "page.tsx")],
+    ["PQ Quest", path.join(repoRoot, "src", "app", "(internal)", "internal", "pq-quest", "page.tsx")],
+    ["Analytics Funnel", path.join(repoRoot, "src", "app", "(internal)", "internal", "analytics", "page.tsx")],
+  ] as const;
+
+  for (const [label, file] of files) {
+    assert.ok(fs.existsSync(file), `${label} route should exist.`);
+    const content = fs.readFileSync(file, "utf8");
+    assert.match(
+      content,
+      /Promise\.allSettled|try\s*\{|console\.error|temporarily unavailable|EmptyState/,
+      `${label} should degrade gracefully when optional data fails.`,
+    );
+  }
+});

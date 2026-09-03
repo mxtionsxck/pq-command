@@ -52,8 +52,27 @@ export default async function SourceRegistryPage({
   const search = readParam(params, "search") ?? "";
   const service = createSourceRegistryService();
   const pipelineService = createDiscoveryPipelineService();
-  const sources = await service.listSources(search);
-  const jobRuns = await pipelineService.listRecentRuns();
+
+  const [sourcesResult, jobRunsResult] = await Promise.allSettled([
+    service.listSources(search),
+    pipelineService.listRecentRuns(),
+  ]);
+
+  const sources =
+    sourcesResult.status === "fulfilled" && Array.isArray(sourcesResult.value)
+      ? sourcesResult.value
+      : [];
+  const jobRuns =
+    jobRunsResult.status === "fulfilled" && Array.isArray(jobRunsResult.value)
+      ? jobRunsResult.value
+      : [];
+
+  if (sourcesResult.status === "rejected") {
+    console.error("Source registry listing failed:", sourcesResult.reason);
+  }
+  if (jobRunsResult.status === "rejected") {
+    console.error("Source registry job run lookup failed:", jobRunsResult.reason);
+  }
 
   return (
     <AppShell>

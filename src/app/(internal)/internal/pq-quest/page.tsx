@@ -23,7 +23,19 @@ export default async function PqQuestPage() {
   }
 
   const service = createPqQuestService();
-  const dashboard = await service.dashboard(user.id);
+  const dashboardResult = await Promise.allSettled([service.dashboard(user.id)]);
+  const dashboard =
+    dashboardResult[0].status === "fulfilled"
+      ? dashboardResult[0].value
+      : {
+          profile: null,
+          objectives: [],
+          recentEvents: [],
+        };
+
+  if (dashboardResult[0].status === "rejected") {
+    console.error("PQ Quest dashboard failed:", dashboardResult[0].reason);
+  }
 
   return (
     <AppShell>

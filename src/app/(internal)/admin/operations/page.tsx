@@ -61,7 +61,7 @@ export default async function OperationsPage({ searchParams }: OperationsPagePro
   const status = readParam(params, "status");
   const sourceId = readParam(params, "sourceId");
 
-  const [health, snapshot, globalLevel3Enabled] = await Promise.all([
+  const [healthResult, snapshotResult, globalLevel3EnabledResult] = await Promise.allSettled([
     service.workerHealth(),
     service.activitySnapshot({
       ...(workerName ? { workerName } : {}),
@@ -70,6 +70,31 @@ export default async function OperationsPage({ searchParams }: OperationsPagePro
     }),
     outreachService.getGlobalLevel3Enabled(),
   ]);
+
+  const health = healthResult.status === "fulfilled" ? healthResult.value : [];
+  const snapshot =
+    snapshotResult.status === "fulfilled"
+      ? snapshotResult.value
+      : {
+          runs: [],
+          failures: [],
+          queue: { deadLetter: [], retrying: [], queued: [] },
+          sources: [],
+        };
+  const globalLevel3Enabled =
+    globalLevel3EnabledResult.status === "fulfilled"
+      ? globalLevel3EnabledResult.value
+      : false;
+
+  if (healthResult.status === "rejected") {
+    console.error("Operations worker health failed:", healthResult.reason);
+  }
+  if (snapshotResult.status === "rejected") {
+    console.error("Operations activity snapshot failed:", snapshotResult.reason);
+  }
+  if (globalLevel3EnabledResult.status === "rejected") {
+    console.error("Operations autonomy flag failed:", globalLevel3EnabledResult.reason);
+  }
 
   return (
     <AppShell>

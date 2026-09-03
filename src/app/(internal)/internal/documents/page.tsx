@@ -23,8 +23,20 @@ export default async function DocumentsPage() {
   }
 
   const service = createDocumentControlService();
-  const recent = await service.listRecentDocuments();
-  const coverage = await service.listDealCoverage();
+  const [recentResult, coverageResult] = await Promise.allSettled([
+    service.listRecentDocuments(),
+    service.listDealCoverage(),
+  ]);
+
+  const recent = recentResult.status === "fulfilled" ? recentResult.value : [];
+  const coverage = coverageResult.status === "fulfilled" ? coverageResult.value : [];
+
+  if (recentResult.status === "rejected") {
+    console.error("Document control recent documents failed:", recentResult.reason);
+  }
+  if (coverageResult.status === "rejected") {
+    console.error("Document control coverage failed:", coverageResult.reason);
+  }
 
   return (
     <AppShell>
